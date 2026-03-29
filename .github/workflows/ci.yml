@@ -1,0 +1,386 @@
+# GitHub Actions CI/CD Pipeline
+# Day 25: Automated Testing & Deployment
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Cancel in-progress runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.x'
+
+jobs:
+  # ============================================
+  # LINT & TYPE CHECK
+  # ============================================
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Run TypeScript type check
+        run: npx tsc --noEmit
+        continue-on-error: false
+
+      - name: Check formatting (Prettier)
+        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+        continue-on-error: true
+
+  # ============================================
+  # UNIT & INTEGRATION TESTS
+  # ============================================
+  test-unit:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage --maxWorkers=2
+        env:
+          CI: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unit
+          name: unit-tests
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================
+  # VISUAL REGRESSION TESTS
+  # ============================================
+  test-visual:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run visual tests
+        run: npx playwright test --config=playwright.visual.config.ts --reporter=html
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-visual-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: visual-test-results
+          path: test-results/
+          retention-days: 7
+
+  # ============================================
+  # E2E TESTS
+  # ============================================
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run E2E tests
+        run: npx playwright test tests/e2e/ --project=${{ matrix.browser }} --reporter=html
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-e2e-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 30
+
+  # ============================================
+  # BUILD
+  # ============================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint, test-unit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Check build size
+        run: |
+          echo "Build completed successfully"
+          du -sh .next/ || echo "Build directory size check failed"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: .next/
+          retention-days: 7
+
+  # ============================================
+  # PERFORMANCE TESTS
+  # ============================================
+  test-performance:
+    name: Performance Tests (Lighthouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [build]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: .next/
+
+      - name: Start application
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000
+            http://localhost:3000/athletes
+            http://localhost:3000/calendar
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # ============================================
+  # SECURITY SCAN
+  # ============================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --production --audit-level=high
+        continue-on-error: true
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # ============================================
+  # DEPLOY PREVIEW (Vercel)
+  # ============================================
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, test-unit, test-e2e]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  # ============================================
+  # DEPLOY PRODUCTION (Vercel)
+  # ============================================
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build, test-unit, test-visual, test-e2e, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  # ============================================
+  # NOTIFY
+  # ============================================
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-visual, test-e2e, build]
+    if: always()
+
+    steps:
+      - name: Check job statuses
+        id: check
+        run: |
+          if [[ "${{ needs.lint.result }}" == "failure" || \
+                "${{ needs.test-unit.result }}" == "failure" || \
+                "${{ needs.test-visual.result }}" == "failure" || \
+                "${{ needs.test-e2e.result }}" == "failure" || \
+                "${{ needs.build.result }}" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: steps.check.outputs.status == 'failure'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "❌ CI Pipeline Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *CI Pipeline Failed*\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Lisbon"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ruida"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      # Group all Radix UI updates together
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Group all testing deps
+      testing:
+        patterns:
+          - "@playwright/test"
+          - "@testing-library/*"
+          - "axe-playwright"
+          - "vitest"
+      # Group Supabase
+      supabase:
+        patterns:
+          - "@supabase/*"
+    # Security-only updates for major deps
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]

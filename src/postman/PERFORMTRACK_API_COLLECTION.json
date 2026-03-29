@@ -1,0 +1,389 @@
+{
+  "info": {
+    "name": "PerformTrack API Collection",
+    "description": "Complete API collection for PerformTrack platform - Week 1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "performtrack-v1"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "workspaceId",
+      "value": "your-workspace-id",
+      "type": "string"
+    },
+    {
+      "key": "athleteId",
+      "value": "your-athlete-id",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "your-session-id",
+      "type": "string"
+    },
+    {
+      "key": "metricId",
+      "value": "your-metric-id",
+      "type": "string"
+    },
+    {
+      "key": "packId",
+      "value": "your-pack-id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Personal Records API (NEW - Week 1)",
+      "item": [
+        {
+          "name": "List Athlete Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes/{{athleteId}}/records?category=strength&status=active&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes", "{{athleteId}}", "records"],
+              "query": [
+                { "key": "category", "value": "strength", "description": "Filter by category (strength, speed, endurance, power)" },
+                { "key": "status", "value": "active", "description": "Filter by status (active, historical, invalidated)" },
+                { "key": "limit", "value": "50", "description": "Limit results" }
+              ]
+            },
+            "description": "Get list of personal records for an athlete with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Personal Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspaceId}}\",\n  \"metricName\": \"back_squat\",\n  \"displayName\": \"Back Squat\",\n  \"category\": \"strength\",\n  \"value\": 150,\n  \"unit\": \"kg\",\n  \"achievedAt\": \"2024-03-20T10:30:00Z\",\n  \"source\": \"session\",\n  \"sourceId\": \"{{sessionId}}\",\n  \"notes\": \"New PR!\",\n  \"createdBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes/{{athleteId}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes", "{{athleteId}}", "records"]
+            },
+            "description": "Create a new personal record for an athlete"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Personal Record",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Back Squat Updated\",\n  \"value\": 155,\n  \"notes\": \"Updated notes\",\n  \"validatedBy\": \"coach-123\",\n  \"validationNotes\": \"Verified by video\",\n  \"updatedBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes/{{athleteId}}/records/:recordId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes", "{{athleteId}}", "records", ":recordId"]
+            },
+            "description": "Update an existing personal record"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalidate Personal Record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes/{{athleteId}}/records/:recordId?reason=Invalid form&deletedBy=user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes", "{{athleteId}}", "records", ":recordId"],
+              "query": [
+                { "key": "reason", "value": "Invalid form" },
+                { "key": "deletedBy", "value": "user-123" }
+              ]
+            },
+            "description": "Invalidate a personal record (soft delete)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Metrics API (NEW - Week 1)",
+      "item": [
+        {
+          "name": "List Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics?workspaceId={{workspaceId}}&category=biological&isActive=true&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics"],
+              "query": [
+                { "key": "workspaceId", "value": "{{workspaceId}}", "description": "Required" },
+                { "key": "packId", "value": "", "description": "Filter by pack", "disabled": true },
+                { "key": "category", "value": "biological", "description": "Filter by category" },
+                { "key": "tags", "value": "", "description": "Comma-separated tags", "disabled": true },
+                { "key": "isActive", "value": "true", "description": "Filter active metrics" },
+                { "key": "limit", "value": "100" }
+              ]
+            },
+            "description": "Get list of metrics with filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Metric",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspaceId}}\",\n  \"packId\": \"{{packId}}\",\n  \"name\": \"hrv_morning\",\n  \"displayName\": \"HRV Morning\",\n  \"description\": \"Heart Rate Variability measured in the morning\",\n  \"category\": \"biological\",\n  \"unit\": \"ms\",\n  \"type\": \"numeric\",\n  \"tags\": [\"dashboard\", \"critical\"],\n  \"aggregationMethod\": \"max\",\n  \"baselineMethod\": \"rolling-average\",\n  \"baselinePeriodDays\": 28,\n  \"createdBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics"]
+            },
+            "description": "Create a new metric (auto-configures aggregation method)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Metric Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/{{metricId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "{{metricId}}"]
+            },
+            "description": "Get details of a specific metric with usage stats"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Metric",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"HRV Morning Updated\",\n  \"description\": \"Updated description\",\n  \"tags\": [\"dashboard\", \"critical\", \"wellness\"],\n  \"aggregationMethod\": \"max\",\n  \"baselinePeriodDays\": 30,\n  \"updatedBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/{{metricId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "{{metricId}}"]
+            },
+            "description": "Update an existing metric"
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Metric",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/{{metricId}}?deletedBy=user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "{{metricId}}"],
+              "query": [
+                { "key": "deletedBy", "value": "user-123" }
+              ]
+            },
+            "description": "Deactivate a metric (soft delete, preserves data)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Metric Packs API (NEW - Week 1)",
+      "item": [
+        {
+          "name": "List Metric Packs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metric-packs?workspaceId={{workspaceId}}&isActive=true&includeMetrics=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metric-packs"],
+              "query": [
+                { "key": "workspaceId", "value": "{{workspaceId}}" },
+                { "key": "isGlobal", "value": "", "disabled": true },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true" },
+                { "key": "includeMetrics", "value": "true", "description": "Include metrics in response" },
+                { "key": "limit", "value": "100", "disabled": true }
+              ]
+            },
+            "description": "Get list of metric packs with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Metric Pack",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspaceId}}\",\n  \"name\": \"Recovery Pack\",\n  \"description\": \"Metrics for tracking athlete recovery\",\n  \"category\": \"wellness\",\n  \"isGlobal\": false,\n  \"icon\": \"Heart\",\n  \"color\": \"emerald\",\n  \"metricIds\": [\"metric-1\", \"metric-2\"],\n  \"createdBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metric-packs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metric-packs"]
+            },
+            "description": "Create a new metric pack (auto-activates for workspace)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pack Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metric-packs/{{packId}}?workspaceId={{workspaceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metric-packs", "{{packId}}"],
+              "query": [
+                { "key": "workspaceId", "value": "{{workspaceId}}", "description": "To check activation status" }
+              ]
+            },
+            "description": "Get details of a specific pack with metrics and activation status"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Metric Pack",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Recovery Pack v2\",\n  \"description\": \"Updated recovery metrics\",\n  \"addMetricIds\": [\"metric-3\"],\n  \"removeMetricIds\": [\"metric-1\"],\n  \"updatedBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metric-packs/{{packId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metric-packs", "{{packId}}"]
+            },
+            "description": "Update a metric pack (can add/remove metrics)"
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Metric Pack",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metric-packs/{{packId}}?removeMetrics=false&deletedBy=user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metric-packs", "{{packId}}"],
+              "query": [
+                { "key": "removeMetrics", "value": "false", "description": "Unlink metrics from pack" },
+                { "key": "deletedBy", "value": "user-123" }
+              ]
+            },
+            "description": "Deactivate a metric pack (soft delete)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Athletes API (Existing)",
+      "item": [
+        {
+          "name": "List Athletes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes?workspaceId={{workspaceId}}&isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes"],
+              "query": [
+                { "key": "workspaceId", "value": "{{workspaceId}}", "description": "Required" },
+                { "key": "isActive", "value": "true", "description": "Filter active athletes" }
+              ]
+            },
+            "description": "Get list of athletes with filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Athlete Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/athletes/{{athleteId}}/metrics?category=biological",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "athletes", "{{athleteId}}", "metrics"],
+              "query": [
+                { "key": "category", "value": "biological", "description": "Filter by category" }
+              ]
+            },
+            "description": "Get athlete's metrics with current values"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Sessions API (Existing)",
+      "item": [
+        {
+          "name": "Create Session Snapshot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"snapshotData\": {\n    \"workout\": {\n      \"id\": \"workout-123\",\n      \"name\": \"Strength Training\",\n      \"exercises\": [\n        {\n          \"id\": \"exercise-1\",\n          \"name\": \"Squat\",\n          \"sets\": [\n            { \"reps\": 10, \"weight\": 100, \"rpe\": 7 }\n          ]\n        }\n      ]\n    },\n    \"athletes\": [\n      {\n        \"id\": \"{{athleteId}}\",\n        \"name\": \"Test Athlete\",\n        \"performance\": {\n          \"totalVolume\": 1000,\n          \"avgRpe\": 7,\n          \"duration\": 3600\n        }\n      }\n    ]\n  },\n  \"completedAt\": \"2024-03-20T12:00:00Z\",\n  \"userId\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{sessionId}}/snapshot",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "{{sessionId}}", "snapshot"]
+            },
+            "description": "Create immutable snapshot of completed session"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

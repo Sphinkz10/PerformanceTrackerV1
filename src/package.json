@@ -1,0 +1,53 @@
+{
+  "name": "performtrack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "load:basic": "k6 run tests/load/basic-load.js",
+    "load:api": "k6 run tests/load/api-load.js",
+    "load:spike": "k6 run tests/load/spike-test.js",
+    "security:audit": "chmod +x scripts/security-audit.sh && ./scripts/security-audit.sh",
+    "verify:migrations": "chmod +x scripts/verify-migrations.sh && ./scripts/verify-migrations.sh",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^3.1.14",
+    "@sentry/nextjs": "^7.92.0",
+    "lucide-react": "^0.263.1",
+    "motion": "^10.16.4",
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.3",
+    "sonner": "^2.0.3",
+    "swr": "^2.2.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.1",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
