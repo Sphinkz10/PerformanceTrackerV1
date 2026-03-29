@@ -77,6 +77,43 @@ const getBrowserClient = (): SupabaseClient<Database> => {
       detectSessionInUrl: true,
       storageKey: 'performtrack-auth',
     },
+    // Phase 4: Resilience & Observability proxy fetcher
+    global: {
+      fetch: async (input, init) => {
+        const maxRetries = 3;
+        let attempt = 0;
+        let lastError: any;
+
+        while (attempt < maxRetries) {
+          try {
+            const response = await fetch(input, init);
+            // Retry only on 5xx server errors or 429 Too Many Requests
+            if (!response.ok && (response.status >= 500 || response.status === 429)) {
+              throw new Error(`Supabase HTTP Error: ${response.status}`);
+            }
+            return response;
+          } catch (error) {
+            lastError = error;
+            attempt++;
+            if (attempt < maxRetries) {
+              // Exponential backoff: 1s, 2s, 4s
+              await new Promise(res => setTimeout(res, 1000 * Math.pow(2, attempt - 1)));
+            }
+          }
+        }
+        
+        // If all retries fail, log to Sentry asynchronously
+        import("@sentry/react").then((Sentry) => {
+          Sentry.captureException(lastError, { 
+            tags: { service: "supabase" },
+            extra: { url: input, method: init?.method } 
+          });
+        });
+
+        // One last fallback throw
+        throw lastError;
+      }
+    }
   });
 
   _supabaseClient = client;
