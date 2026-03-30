@@ -23,12 +23,14 @@ interface LibraryUnifiedWithModalsProps {
   onCreateMetric: () => void;
   workspaceId?: string;
   workspaceName?: string;
+  onNavigateToAutomations?: () => void;
 }
 
 export function LibraryUnifiedWithModals({
   onCreateMetric,
   workspaceId,
   workspaceName,
+  onNavigateToAutomations,
 }: LibraryUnifiedWithModalsProps) {
   // Modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -248,8 +250,14 @@ export function LibraryUnifiedWithModals({
   };
 
   const handleManageAutomations = () => {
-    // TODO: Navigate to automations page
-    toast.info('🔄 Navegar para página de automações...');
+    if (onNavigateToAutomations) {
+      onNavigateToAutomations();
+      // Auto-close modal
+      setBlockedDeleteModalOpen(false);
+      setSelectedMetric(null);
+    } else {
+      toast.info('🔄 Navegar para página de automações...');
+    }
   };
 
   // ============================================================================

@@ -245,6 +245,7 @@ export function DataOS({ onCreateMetric, workspaceId = 'workspace-1', workspaceN
                   onCreateMetric={() => onCreateMetric?.()}
                   workspaceId={workspaceId}
                   workspaceName={workspaceName}
+                  onNavigateToAutomations={() => setActiveTab('automation')}
                 />
               ) : (
                 <LibraryMain
