@@ -1,11 +1,15 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["**/*.js", "node_modules/**", "build/**", "dist/**", "src/tests/**", "tests/**", "src/jest.config.*", "src/lighthouse.config.js", "src/next.config.*"],
+    plugins: {
+      "react-hooks": reactHooks
+    },
+    ignores: ["**/*.js", "node_modules/**", "build/**", "dist/**", "tests/**", "src/tests/**", "src/jest.config.*", "src/lighthouse.config.js", "src/next.config.*"],
     rules: {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "off",

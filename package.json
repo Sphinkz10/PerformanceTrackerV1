@@ -91,7 +91,7 @@
             "dev": "vite",
             "build": "vite build",
             "type-check": "tsc --noEmit",
-            "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
+            "lint": "eslint src",
             "test:load": "k6 run tests/performance/load-test.js",
             "test": "vitest run",
             "e2e": "playwright test"

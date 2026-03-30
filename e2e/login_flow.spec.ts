@@ -8,14 +8,14 @@ test.describe('Login Flow', () => {
     await expect(page.locator('text=PerformTrack').first()).toBeVisible();
     
     // Check for email and password inputs
-    await expect(page.getByPlaceholder('Ex: marcelo@treinador.pt')).toBeVisible();
+    await expect(page.getByPlaceholder('seu@email.com')).toBeVisible();
     await expect(page.getByPlaceholder('••••••••')).toBeVisible();
   });
 
   test('should show error for invalid credentials depending on auth system', async ({ page }) => {
     await page.goto('/login');
     
-    await page.getByPlaceholder('Ex: marcelo@treinador.pt').fill('invalid@demo.com');
+    await page.getByPlaceholder('seu@email.com').fill('invalid@demo.com');
     await page.getByPlaceholder('••••••••').fill('wrongpassword');
     
     // The specific button depends on text but typically "Entrar"

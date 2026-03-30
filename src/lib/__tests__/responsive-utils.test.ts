@@ -264,12 +264,8 @@ describe('Responsive Utils', () => {
     });
 
     it('should return false when no touch support', () => {
-      // Remove touch support
-      Object.defineProperty(window, 'ontouchstart', {
-        writable: true,
-        configurable: true,
-        value: undefined
-      });
+      // Remove touch support by deleting the property
+      delete (window as any).ontouchstart;
 
       Object.defineProperty(navigator, 'maxTouchPoints', {
         writable: true,
