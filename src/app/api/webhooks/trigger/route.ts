@@ -35,9 +35,39 @@ import crypto from 'crypto';
 // ============================================================================
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Missing or invalid token' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+
+    // Using the same JWT secret pattern as the athlete portal
+    let decoded: any;
+    try {
+      const jwt = await import('jsonwebtoken');
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_for_development');
+    } catch {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     const { workspaceId, eventType, eventData } = body;
+
+    // Optional: Validate that the token belongs to the requested workspace
+    if (decoded.workspaceId && decoded.workspaceId !== workspaceId) {
+       return NextResponse.json(
+         { error: 'Unauthorized - Workspace mismatch' },
+         { status: 403 }
+       );
+    }
 
     if (!workspaceId || !eventType || !eventData) {
       return NextResponse.json(

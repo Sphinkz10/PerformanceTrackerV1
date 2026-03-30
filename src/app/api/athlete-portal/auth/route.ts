@@ -111,17 +111,17 @@ export async function POST(request: NextRequest) {
     }
 
     // ==============================================================
-    // Generate simple token (in production, use JWT or session)
+    // Generate secure JWT token
     // ==============================================================
-    // For now, we'll just return athlete.id as token
-    // In production, you'd use: jwt.sign({ athleteId: athlete.id }, secret)
-    const token = Buffer.from(
-      JSON.stringify({ 
+    const jwt = await import('jsonwebtoken');
+    const token = jwt.sign(
+      {
         athleteId: athlete.id, 
-        workspaceId: athlete.workspace_id,
-        timestamp: Date.now() 
-      })
-    ).toString('base64');
+        workspaceId: athlete.workspace_id
+      },
+      process.env.JWT_SECRET || 'fallback_secret_for_development',
+      { expiresIn: '24h' }
+    );
 
     // ==============================================================
     // Return athlete profile
@@ -167,10 +167,11 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.substring(7); // Remove 'Bearer '
 
-    // Decode token
-    let decoded;
+    // Verify and decode token
+    let decoded: any;
     try {
-      decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+      const jwt = await import('jsonwebtoken');
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_for_development');
     } catch {
       return NextResponse.json(
         { error: 'Invalid token' },
@@ -178,7 +179,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { athleteId, workspaceId } = decoded;
+    const { athleteId, workspaceId } = decoded as any;
 
     if (!athleteId || !workspaceId) {
       return NextResponse.json(

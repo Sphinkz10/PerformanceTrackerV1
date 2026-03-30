@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as kv from '@/supabase/functions/server/kv_store';
+import crypto from 'crypto';
 
 /**
  * POST /api/form-submissions
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     // ==================================================
     // 1. SAVE FORM SUBMISSION
     // ==================================================
-    const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const submissionId = `submission_${crypto.randomUUID()}`;
     const submittedAt = new Date().toISOString();
 
     const submission = {

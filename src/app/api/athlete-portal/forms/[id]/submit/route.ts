@@ -38,7 +38,8 @@ async function getAthleteFromToken(request: NextRequest) {
   const token = authHeader.substring(7);
 
   try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    const jwt = await import('jsonwebtoken');
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_for_development');
     return { athleteId: decoded.athleteId, workspaceId: decoded.workspaceId };
   } catch {
     return null;

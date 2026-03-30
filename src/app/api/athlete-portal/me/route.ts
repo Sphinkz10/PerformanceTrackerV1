@@ -42,8 +42,9 @@ async function getAthleteFromToken(request: NextRequest) {
   const token = authHeader.substring(7);
 
   try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.athleteId;
+    const jwt = await import('jsonwebtoken');
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_for_development');
+    return { athleteId: decoded.athleteId, workspaceId: decoded.workspaceId };
   } catch {
     return null;
   }
@@ -54,7 +55,9 @@ async function getAthleteFromToken(request: NextRequest) {
 // ============================================================================
 export async function GET(request: NextRequest) {
   try {
-    const athleteId = await getAthleteFromToken(request);
+    const auth = await getAthleteFromToken(request);
+    const athleteId = auth?.athleteId;
+    const workspaceId = auth?.workspaceId;
 
     if (!athleteId) {
       return NextResponse.json(
@@ -262,7 +265,9 @@ export async function GET(request: NextRequest) {
 // ============================================================================
 export async function PUT(request: NextRequest) {
   try {
-    const athleteId = await getAthleteFromToken(request);
+    const auth = await getAthleteFromToken(request);
+    const athleteId = auth?.athleteId;
+    const workspaceId = auth?.workspaceId;
 
     if (!athleteId) {
       return NextResponse.json(
