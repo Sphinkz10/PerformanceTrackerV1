@@ -20,26 +20,21 @@ import type { Decision, UpdateDecisionRequest } from '@/lib/decision-engine/type
 /**
  * Get single decision by ID
  */
-export async function GET(request: NextRequest, {
-  params
-}: {
-  params: {
-    id: string;
-  };
-}) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const {
-      id
-    } = params;
+    const { id } = params;
 
     // Find decision in mock data
     const decision = mockDecisions.find(d => d.id === id);
+
     if (!decision) {
-      return NextResponse.json({
-        error: 'Decision not found'
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Decision not found' },
+        { status: 404 }
+      );
     }
 
     // TODO: In production, fetch from database
@@ -50,22 +45,26 @@ export async function GET(request: NextRequest, {
     //   .eq('id', id)
     //   .single();
 
-    return NextResponse.json({
-      decision
-    }, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-store, max-age=0'
+    return NextResponse.json(
+      { decision },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
       }
-    });
+    );
+
   } catch (error) {
     console.error('[API] Error fetching decision:', error);
-    return NextResponse.json({
-      error: 'Failed to fetch decision',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, {
-      status: 500
-    });
+
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch decision',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -83,55 +82,49 @@ export async function GET(request: NextRequest, {
  *   dismissReason?: string  // Required if dismissing
  * }
  */
-export async function PATCH(request: NextRequest, {
-  params
-}: {
-  params: {
-    id: string;
-  };
-}) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const {
-      id
-    } = params;
+    const { id } = params;
     const body: UpdateDecisionRequest = await request.json();
 
     // Validate status
     if (!['applied', 'dismissed'].includes(body.status)) {
-      return NextResponse.json({
-        error: 'Invalid status. Must be "applied" or "dismissed"'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Invalid status. Must be "applied" or "dismissed"' },
+        { status: 400 }
+      );
     }
 
     // Validate dismissReason if dismissing
     if (body.status === 'dismissed' && !body.dismissReason) {
-      return NextResponse.json({
-        error: 'dismissReason is required when dismissing a decision'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'dismissReason is required when dismissing a decision' },
+        { status: 400 }
+      );
     }
 
     // Find decision
     const decision = mockDecisions.find(d => d.id === id);
+
     if (!decision) {
-      return NextResponse.json({
-        error: 'Decision not found'
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Decision not found' },
+        { status: 404 }
+      );
     }
 
     // Check if already processed
     if (decision.status !== 'pending') {
-      return NextResponse.json({
-        error: `Decision already ${decision.status}`,
-        currentStatus: decision.status
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: `Decision already ${decision.status}`,
+          currentStatus: decision.status
+        },
+        { status: 400 }
+      );
     }
 
     // Build update object
@@ -140,8 +133,9 @@ export async function PATCH(request: NextRequest, {
 
     const updates: Partial<Decision> = {
       status: body.status,
-      notes: body.notes
+      notes: body.notes,
     };
+
     if (body.status === 'applied') {
       updates.appliedAt = now;
       updates.appliedBy = userId;
@@ -154,27 +148,23 @@ export async function PATCH(request: NextRequest, {
     // Apply updates (mock)
     Object.assign(decision, updates);
 
-    // TODO: In production, update database
-    // const supabase = createClient();
-    // const { error } = await supabase
-    //   .from('decisions')
-    //   .update(updates)
-    //   .eq('id', id);
-
-    return NextResponse.json({
-      success: true,
-      decision
-    }, {
-      status: 200
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        decision
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[API] Error updating decision:', error);
-    return NextResponse.json({
-      error: 'Failed to update decision',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, {
-      status: 500
-    });
+
+    return NextResponse.json(
+      {
+        error: 'Failed to update decision',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -188,17 +178,12 @@ export async function PATCH(request: NextRequest, {
  * Only for testing/admin purposes.
  * Normally decisions should be dismissed, not deleted.
  */
-export async function DELETE(request: NextRequest, {
-  params
-}: {
-  params: {
-    id: string;
-  };
-}) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const {
-      id
-    } = params;
+    const { id } = params;
 
     // TODO: Check admin permissions
     // const session = await getSession();
@@ -211,37 +196,33 @@ export async function DELETE(request: NextRequest, {
 
     // Find decision
     const decisionIndex = mockDecisions.findIndex(d => d.id === id);
+
     if (decisionIndex === -1) {
-      return NextResponse.json({
-        error: 'Decision not found'
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Decision not found' },
+        { status: 404 }
+      );
     }
 
     // Remove from mock array (in production, delete from DB)
     mockDecisions.splice(decisionIndex, 1);
 
-    // TODO: In production, delete from database
-    // const supabase = createClient();
-    // const { error } = await supabase
-    //   .from('decisions')
-    //   .delete()
-    //   .eq('id', id);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Decision deleted'
-    }, {
-      status: 200
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Decision deleted'
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[API] Error deleting decision:', error);
-    return NextResponse.json({
-      error: 'Failed to delete decision',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, {
-      status: 500
-    });
+
+    return NextResponse.json(
+      {
+        error: 'Failed to delete decision',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }

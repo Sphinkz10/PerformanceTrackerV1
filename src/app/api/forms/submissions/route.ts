@@ -31,7 +31,11 @@ interface TransformationConfig {
   multiplier?: number;
   offset?: number;
 }
-function executeTransformation(value: any, transformation: TransformationConfig): number | string | boolean | null {
+
+function executeTransformation(
+  value: any,
+  transformation: TransformationConfig
+): number | string | boolean | null {
   if (transformation.type === 'none') {
     return value;
   }
@@ -49,6 +53,7 @@ function executeTransformation(value: any, transformation: TransformationConfig)
     if (transformation.offset) {
       result += transformation.offset;
     }
+
     return Math.round(result * 100) / 100; // Round to 2 decimals
   }
 
@@ -59,9 +64,8 @@ function executeTransformation(value: any, transformation: TransformationConfig)
       if (isNaN(numValue)) return null;
 
       // Use safe formula evaluator instead of new Function()
-      const result = safeEvaluateFormula(transformation.formula, {
-        value: numValue
-      });
+      const result = safeEvaluateFormula(transformation.formula, { value: numValue });
+
       return Math.round(result * 100) / 100;
     } catch (error) {
       console.error('Formula execution error:', error);
@@ -73,6 +77,7 @@ function executeTransformation(value: any, transformation: TransformationConfig)
   if (transformation.type === 'mapping' && transformation.mapping) {
     return transformation.mapping[value] ?? value;
   }
+
   return value;
 }
 
@@ -85,11 +90,13 @@ interface ValidationRule {
   value?: any;
   message?: string;
 }
-function validateValue(value: any, rules: ValidationRule[]): {
-  valid: boolean;
-  errors: string[];
-} {
+
+function validateValue(
+  value: any,
+  rules: ValidationRule[]
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
+
   for (const rule of rules) {
     switch (rule.type) {
       case 'required':
@@ -97,18 +104,21 @@ function validateValue(value: any, rules: ValidationRule[]): {
           errors.push(rule.message || 'Campo obrigatório');
         }
         break;
+
       case 'min':
         const numVal = parseFloat(value);
         if (!isNaN(numVal) && numVal < rule.value) {
           errors.push(rule.message || `Valor mínimo: ${rule.value}`);
         }
         break;
+
       case 'max':
         const maxVal = parseFloat(value);
         if (!isNaN(maxVal) && maxVal > rule.value) {
           errors.push(rule.message || `Valor máximo: ${rule.value}`);
         }
         break;
+
       case 'pattern':
         if (typeof value === 'string' && rule.value) {
           const regex = new RegExp(rule.value);
@@ -119,6 +129,7 @@ function validateValue(value: any, rules: ValidationRule[]): {
         break;
     }
   }
+
   return {
     valid: errors.length === 0,
     errors
@@ -131,76 +142,83 @@ function validateValue(value: any, rules: ValidationRule[]): {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
     const {
       form_id,
       athlete_id,
       workspace_id = 'default-workspace',
-      responses,
-      // { fieldId: value }
+      responses, // { fieldId: value }
       submitted_by
     } = body;
 
     // Validation
     if (!form_id || !athlete_id || !responses) {
-      return NextResponse.json({
-        error: 'Missing required fields: form_id, athlete_id, responses'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Missing required fields: form_id, athlete_id, responses' },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // ========================================================================
     // STEP 1: Fetch form configuration with metric links
     // ========================================================================
-    const {
-      data: form,
-      error: formError
-    } = await supabase.from('forms').select(`
+    const { data: form, error: formError } = await supabase
+      .from('forms')
+      .select(`
         id,
         title,
         fields,
         workspace_id
-      `).eq('id', form_id).single();
+      `)
+      .eq('id', form_id)
+      .single();
+
     if (formError || !form) {
-      return NextResponse.json({
-        error: 'Form not found',
-        details: formError?.message
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Form not found', details: formError?.message },
+        { status: 404 }
+      );
     }
 
     // ========================================================================
     // STEP 2: Fetch metric links for this form
     // ========================================================================
-    const {
-      data: metricLinks,
-      error: linksError
-    } = await supabase.from('form_field_metric_links').select('*').eq('form_id', form_id).eq('is_active', true);
+    const { data: metricLinks, error: linksError } = await supabase
+      .from('form_field_metric_links')
+      .select('*')
+      .eq('form_id', form_id)
+      .eq('is_active', true);
+
     if (linksError) {
       console.error('Error fetching metric links:', linksError);
       // Non-fatal, continue without links
     }
+
     // ========================================================================
     // STEP 3: Validate all responses
     // ========================================================================
     const validationErrors: Record<string, string[]> = {};
+
     for (const [fieldId, value] of Object.entries(responses)) {
       const field = form.fields?.find((f: any) => f.id === fieldId);
       if (!field) continue;
+
       const validation = validateValue(value, field.validation || []);
       if (!validation.valid) {
         validationErrors[fieldId] = validation.errors;
       }
     }
+
     if (Object.keys(validationErrors).length > 0) {
-      return NextResponse.json({
-        error: 'Validation failed',
-        validationErrors
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          validationErrors
+        },
+        { status: 400 }
+      );
     }
 
     // ========================================================================
@@ -208,6 +226,7 @@ export async function POST(request: NextRequest) {
     // ========================================================================
     const metricUpdatesToCreate: any[] = [];
     const processingLog: any[] = [];
+
     for (const link of metricLinks || []) {
       const fieldValue = responses[link.field_id];
       if (fieldValue === null || fieldValue === undefined) {
@@ -215,9 +234,11 @@ export async function POST(request: NextRequest) {
       }
 
       // Execute transformation
-      const transformedValue = executeTransformation(fieldValue, link.transformation_config || {
-        type: 'none'
-      });
+      const transformedValue = executeTransformation(
+        fieldValue,
+        link.transformation_config || { type: 'none' }
+      );
+
       if (transformedValue === null) {
         console.error(`❌ [Transformation] Failed for field ${link.field_id}`);
         processingLog.push({
@@ -236,8 +257,7 @@ export async function POST(request: NextRequest) {
         metric_id: link.metric_id,
         timestamp: new Date().toISOString(),
         source_type: 'form_submission',
-        source_id: undefined,
-        // Will be set after submission creation
+        source_id: undefined, // Will be set after submission creation
         created_by: submitted_by
       };
 
@@ -251,7 +271,9 @@ export async function POST(request: NextRequest) {
       } else {
         metricUpdate['value_json'] = transformedValue;
       }
+
       metricUpdatesToCreate.push(metricUpdate);
+
       processingLog.push({
         field_id: link.field_id,
         metric_id: link.metric_id,
@@ -260,45 +282,49 @@ export async function POST(request: NextRequest) {
         status: 'success'
       });
     }
+
     // ========================================================================
     // STEP 5: Save submission
     // ========================================================================
-    const {
-      data: submission,
-      error: submissionError
-    } = await supabase.from('form_submissions').insert({
-      form_id,
-      athlete_id,
-      responses,
-      submitted_at: new Date().toISOString(),
-      submitted_by,
-      processed: metricUpdatesToCreate.length > 0,
-      processing_log: processingLog
-    }).select().single();
+    const { data: submission, error: submissionError } = await supabase
+      .from('form_submissions')
+      .insert({
+        form_id,
+        athlete_id,
+        responses,
+        submitted_at: new Date().toISOString(),
+        submitted_by,
+        processed: metricUpdatesToCreate.length > 0,
+        processing_log: processingLog
+      })
+      .select()
+      .single();
+
     if (submissionError) {
       console.error('Error creating submission:', submissionError);
-      return NextResponse.json({
-        error: 'Failed to create submission',
-        details: submissionError.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create submission', details: submissionError.message },
+        { status: 500 }
+      );
     }
 
     // ========================================================================
     // STEP 6: Create metric updates with source_id
     // ========================================================================
     let createdMetrics = 0;
+
     if (metricUpdatesToCreate.length > 0) {
       // Set source_id to submission id
       const updates = metricUpdatesToCreate.map(update => ({
         ...update,
         source_id: submission.id
       }));
-      const {
-        data: metrics,
-        error: metricsError
-      } = await supabase.from('metric_updates').insert(updates).select();
+
+      const { data: metrics, error: metricsError } = await supabase
+        .from('metric_updates')
+        .insert(updates)
+        .select();
+
       if (metricsError) {
         console.error('Error creating metrics:', metricsError);
         // Non-fatal, submission already saved
@@ -318,12 +344,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Unexpected error in POST /api/forms/submissions:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -332,62 +356,61 @@ export async function POST(request: NextRequest) {
 // ============================================================================
 export async function GET(request: NextRequest) {
   try {
-    const {
-      searchParams
-    } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
+
     const workspaceId = searchParams.get('workspaceId');
     const formId = searchParams.get('formId');
     const athleteId = searchParams.get('athleteId');
     const processed = searchParams.get('processed');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
+
     if (!workspaceId) {
-      return NextResponse.json({
-        error: 'Missing workspaceId parameter'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Missing workspaceId parameter' },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // Build query
-    let query = supabase.from('form_submissions').select(`
+    let query = supabase
+      .from('form_submissions')
+      .select(`
         *,
         forms!inner(title, workspace_id),
         athletes!inner(name, email)
-      `, {
-      count: 'exact'
-    }).eq('forms.workspace_id', workspaceId).order('submitted_at', {
-      ascending: false
-    });
+      `, { count: 'exact' })
+      .eq('forms.workspace_id', workspaceId)
+      .order('submitted_at', { ascending: false });
 
     // Apply filters
     if (formId) {
       query = query.eq('form_id', formId);
     }
+
     if (athleteId) {
       query = query.eq('athlete_id', athleteId);
     }
+
     if (processed !== null) {
       query = query.eq('processed', processed === 'true');
     }
 
     // Pagination
     query = query.range(offset, offset + limit - 1);
-    const {
-      data: submissions,
-      error,
-      count
-    } = await query;
+
+    const { data: submissions, error, count } = await query;
+
     if (error) {
       console.error('Error fetching submissions:', error);
-      return NextResponse.json({
-        error: 'Failed to fetch submissions',
-        details: error.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to fetch submissions', details: error.message },
+        { status: 500 }
+      );
     }
+
     return NextResponse.json({
       submissions: submissions || [],
       count: count || 0,
@@ -396,11 +419,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Unexpected error in GET /api/forms/submissions:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }

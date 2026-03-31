@@ -21,29 +21,31 @@ import { createClient } from '@/utils/supabase/server';
 // ============================================================================
 export async function GET(request: NextRequest) {
   try {
-    const {
-      searchParams
-    } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
     const packId = searchParams.get('packId');
     const category = searchParams.get('category');
     const tags = searchParams.get('tags'); // comma-separated
     const isActive = searchParams.get('isActive') !== 'false';
     const limit = parseInt(searchParams.get('limit') || '100');
+
     if (!workspaceId) {
-      return NextResponse.json({
-        error: 'workspaceId is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'workspaceId is required' },
+        { status: 400 }
+      );
     }
 
     // Try to use Supabase, fallback to mock data
     let metrics = MOCK_METRICS;
     let usingMockData = false;
+
     try {
       const supabase = await createClient();
-      let query = supabase.from('metrics').select(`
+
+      let query = supabase
+        .from('metrics')
+        .select(`
           *,
           metric_packs (
             id,
@@ -51,9 +53,10 @@ export async function GET(request: NextRequest) {
             category,
             is_global
           )
-        `).eq('workspace_id', workspaceId).order('name', {
-        ascending: true
-      }).limit(limit);
+        `)
+        .eq('workspace_id', workspaceId)
+        .order('name', { ascending: true })
+        .limit(limit);
 
       // Apply filters
       if (packId) {
@@ -71,10 +74,9 @@ export async function GET(request: NextRequest) {
         const tagArray = tags.split(',').map(t => t.trim());
         query = query.overlaps('tags', tagArray);
       }
-      const {
-        data,
-        error
-      } = await query;
+
+      const { data, error } = await query;
+
       if (error) {
         usingMockData = true;
       } else if (data) {
@@ -104,12 +106,14 @@ export async function GET(request: NextRequest) {
       acc[cat].push(metric);
       return acc;
     }, {});
+
     return NextResponse.json({
       metrics: filteredMetrics || [],
       grouped,
       count: filteredMetrics?.length || 0,
-      _mockData: usingMockData
+      _mockData: usingMockData,
     });
+
   } catch (error: any) {
     console.error('Unexpected error in GET /api/metrics:', error);
 
@@ -122,12 +126,13 @@ export async function GET(request: NextRequest) {
       acc[cat].push(metric);
       return acc;
     }, {});
+
     return NextResponse.json({
       metrics: MOCK_METRICS,
       grouped,
       count: MOCK_METRICS.length,
       _mockData: true,
-      _error: error.message
+      _error: error.message,
     });
   }
 }
@@ -138,6 +143,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
     const {
       workspaceId,
       packId,
@@ -153,52 +159,59 @@ export async function POST(request: NextRequest) {
       baselinePeriodDays,
       baselineManualValue,
       validationRules,
-      createdBy
+      createdBy,
     } = body;
 
     // Validation
     if (!workspaceId || !name) {
-      return NextResponse.json({
-        error: 'Missing required fields',
-        required: ['workspaceId', 'name']
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: 'Missing required fields',
+          required: ['workspaceId', 'name']
+        },
+        { status: 400 }
+      );
     }
 
     // Validate aggregation method
     const validAggregationMethods = ['latest', 'average', 'sum', 'max', 'min'];
     if (aggregationMethod && !validAggregationMethods.includes(aggregationMethod)) {
-      return NextResponse.json({
-        error: 'Invalid aggregation method',
-        validMethods: validAggregationMethods
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: 'Invalid aggregation method',
+          validMethods: validAggregationMethods
+        },
+        { status: 400 }
+      );
     }
 
     // Validate baseline method
     const validBaselineMethods = ['rolling-average', 'manual', 'percentile'];
     if (baselineMethod && !validBaselineMethods.includes(baselineMethod)) {
-      return NextResponse.json({
-        error: 'Invalid baseline method',
-        validMethods: validBaselineMethods
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: 'Invalid baseline method',
+          validMethods: validBaselineMethods
+        },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // Check for duplicate name in workspace
-    const {
-      data: existing
-    } = await supabase.from('metrics').select('id').eq('workspace_id', workspaceId).eq('name', name).single();
+    const { data: existing } = await supabase
+      .from('metrics')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('name', name)
+      .single();
+
     if (existing) {
-      return NextResponse.json({
-        error: 'A metric with this name already exists in this workspace'
-      }, {
-        status: 409
-      });
+      return NextResponse.json(
+        { error: 'A metric with this name already exists in this workspace' },
+        { status: 409 }
+      );
     }
 
     // Auto-configure aggregation method based on name patterns
@@ -219,52 +232,50 @@ export async function POST(request: NextRequest) {
     }
 
     // Create metric
-    const {
-      data: metric,
-      error
-    } = await supabase.from('metrics').insert({
-      workspace_id: workspaceId,
-      pack_id: packId || null,
-      name,
-      display_name: displayName || name,
-      description: description || null,
-      category: category || null,
-      unit: unit || null,
-      type: type || null,
-      tags: tags || [],
-      aggregation_method: finalAggregationMethod,
-      baseline_method: baselineMethod || 'rolling-average',
-      baseline_period_days: baselinePeriodDays || 28,
-      baseline_manual_value: baselineManualValue || null,
-      validation_rules: validationRules || {},
-      is_active: true
-    }).select().single();
+    const { data: metric, error } = await supabase
+      .from('metrics')
+      .insert({
+        workspace_id: workspaceId,
+        pack_id: packId || null,
+        name,
+        display_name: displayName || name,
+        description: description || null,
+        category: category || null,
+        unit: unit || null,
+        type: type || null,
+        tags: tags || [],
+        aggregation_method: finalAggregationMethod,
+        baseline_method: baselineMethod || 'rolling-average',
+        baseline_period_days: baselinePeriodDays || 28,
+        baseline_manual_value: baselineManualValue || null,
+        validation_rules: validationRules || {},
+        is_active: true,
+      })
+      .select()
+      .single();
+
     if (error) {
       console.error('Error creating metric:', error);
-      return NextResponse.json({
-        error: 'Failed to create metric',
-        details: error.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create metric', details: error.message },
+        { status: 500 }
+      );
     }
+
     return NextResponse.json({
       success: true,
       metric,
       autoConfigured: !aggregationMethod ? {
         aggregationMethod: finalAggregationMethod,
         reason: 'Auto-detected based on metric name'
-      } : null
-    }, {
-      status: 201
-    });
+      } : null,
+    }, { status: 201 });
+
   } catch (error: any) {
     console.error('Unexpected error in POST /api/metrics:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }

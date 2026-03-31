@@ -26,10 +26,8 @@ interface GenerationOptions {
   config: any;
   data: any;
 }
-async function generatePDF(options: GenerationOptions): Promise<string> {
-  // TODO: Implement with jsPDF or similar
-  // For now, return mock URL
 
+async function generatePDF(options: GenerationOptions): Promise<string> {
   // Simulated generation
   await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -44,9 +42,8 @@ async function generatePDF(options: GenerationOptions): Promise<string> {
 
   return 'https://example.com/generated-report.pdf';
 }
-async function generateExcel(options: GenerationOptions): Promise<string> {
-  // TODO: Implement with xlsx or similar
 
+async function generateExcel(options: GenerationOptions): Promise<string> {
   await new Promise(resolve => setTimeout(resolve, 800));
 
   // In production, this would:
@@ -60,9 +57,8 @@ async function generateExcel(options: GenerationOptions): Promise<string> {
 
   return 'https://example.com/generated-report.xlsx';
 }
-async function generateWeb(options: GenerationOptions): Promise<string> {
-  // Web format just returns the config + data
 
+async function generateWeb(options: GenerationOptions): Promise<string> {
   // In production, this would:
   // 1. Create HTML template
   // 2. Embed data
@@ -77,110 +73,120 @@ async function generateWeb(options: GenerationOptions): Promise<string> {
 // ============================================================================
 // POST /api/reports/[id]/generate - Generate report
 // ============================================================================
-export async function POST(request: NextRequest, context: {
-  params: Promise<{
-    id: string;
-  }>;
-}) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const startTime = Date.now();
+
   try {
-    const {
-      id
-    } = await context.params;
+    const { id } = await context.params;
     const body = await request.json();
+
     const {
       format = 'pdf',
       generated_by
     } = body;
+
     const supabase = await createClient();
 
     // ========================================================================
     // STEP 1: Fetch report configuration
     // ========================================================================
-    const {
-      data: report,
-      error: reportError
-    } = await supabase.from('reports').select('*').eq('id', id).single();
+    const { data: report, error: reportError } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     if (reportError || !report) {
-      return NextResponse.json({
-        error: 'Report not found',
-        details: reportError?.message
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Report not found', details: reportError?.message },
+        { status: 404 }
+      );
     }
+
     // ========================================================================
     // STEP 2: Create generation record (pending)
     // ========================================================================
-    const {
-      data: generation,
-      error: genError
-    } = await supabase.from('report_generations').insert({
-      report_id: id,
-      generated_by,
-      generation_type: 'manual',
-      file_format: format,
-      status: 'generating',
-      config_snapshot: report.config,
-      data_snapshot: report.data_source
-    }).select().single();
+    const { data: generation, error: genError } = await supabase
+      .from('report_generations')
+      .insert({
+        report_id: id,
+        generated_by,
+        generation_type: 'manual',
+        file_format: format,
+        status: 'generating',
+        config_snapshot: report.config,
+        data_snapshot: report.data_source
+      })
+      .select()
+      .single();
+
     if (genError || !generation) {
-      return NextResponse.json({
-        error: 'Failed to create generation record',
-        details: genError?.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create generation record', details: genError?.message },
+        { status: 500 }
+      );
     }
 
     // ========================================================================
     // STEP 3: Fetch data based on data_source
     // ========================================================================
     let reportData: any = {};
+
     if (report.data_source) {
-      const {
-        type,
-        ids,
-        date_range
-      } = report.data_source;
+      const { type, ids, date_range } = report.data_source;
 
       // Fetch athletes data
       if (type === 'athletes' && ids && ids.length > 0) {
-        const {
-          data: athletes
-        } = await supabase.from('athletes').select('*').in('id', ids);
+        const { data: athletes } = await supabase
+          .from('athletes')
+          .select('*')
+          .in('id', ids);
+
         reportData.athletes = athletes || [];
 
         // Fetch metrics for athletes
-        const {
-          data: metrics
-        } = await supabase.from('metric_updates').select('*').in('athlete_id', ids).gte('timestamp', date_range?.start || '2020-01-01').lte('timestamp', date_range?.end || '2030-01-01').order('timestamp', {
-          ascending: false
-        }).limit(1000);
+        const { data: metrics } = await supabase
+          .from('metric_updates')
+          .select('*')
+          .in('athlete_id', ids)
+          .gte('timestamp', date_range?.start || '2020-01-01')
+          .lte('timestamp', date_range?.end || '2030-01-01')
+          .order('timestamp', { ascending: false })
+          .limit(1000);
+
         reportData.metrics = metrics || [];
       }
 
       // Fetch sessions data
       if (type === 'sessions') {
-        const {
-          data: sessions
-        } = await supabase.from('sessions').select('*').gte('started_at', date_range?.start || '2020-01-01').lte('started_at', date_range?.end || '2030-01-01').order('started_at', {
-          ascending: false
-        }).limit(100);
+        const { data: sessions } = await supabase
+          .from('sessions')
+          .select('*')
+          .gte('started_at', date_range?.start || '2020-01-01')
+          .lte('started_at', date_range?.end || '2030-01-01')
+          .order('started_at', { ascending: false })
+          .limit(100);
+
         reportData.sessions = sessions || [];
       }
     }
+
     // ========================================================================
     // STEP 4: Generate file based on format
     // ========================================================================
     let fileUrl: string;
     let fileSize = 0;
+
     try {
       const options: GenerationOptions = {
         format: format as any,
         config: report.config,
         data: reportData
       };
+
       if (format === 'pdf') {
         fileUrl = await generatePDF(options);
         fileSize = 250000; // Mock size
@@ -193,10 +199,14 @@ export async function POST(request: NextRequest, context: {
       }
     } catch (genError: any) {
       // Mark as failed
-      await supabase.from('report_generations').update({
-        status: 'failed',
-        error_message: genError.message
-      }).eq('id', generation.id);
+      await supabase
+        .from('report_generations')
+        .update({
+          status: 'failed',
+          error_message: genError.message
+        })
+        .eq('id', generation.id);
+
       throw genError;
     }
 
@@ -204,15 +214,19 @@ export async function POST(request: NextRequest, context: {
     // STEP 5: Update generation record (completed)
     // ========================================================================
     const processingTime = Date.now() - startTime;
-    const {
-      data: finalGeneration,
-      error: updateError
-    } = await supabase.from('report_generations').update({
-      status: 'completed',
-      file_url: fileUrl,
-      file_size: fileSize,
-      processing_time: processingTime
-    }).eq('id', generation.id).select().single();
+
+    const { data: finalGeneration, error: updateError } = await supabase
+      .from('report_generations')
+      .update({
+        status: 'completed',
+        file_url: fileUrl,
+        file_size: fileSize,
+        processing_time: processingTime
+      })
+      .eq('id', generation.id)
+      .select()
+      .single();
+
     if (updateError) {
       console.error('Error updating generation:', updateError);
     }
@@ -220,14 +234,13 @@ export async function POST(request: NextRequest, context: {
     // ========================================================================
     // STEP 6: Update report stats
     // ========================================================================
-    await supabase.from('reports').update({
-      generation_count: report.generation_count + 1,
-      last_generated_at: new Date().toISOString()
-    }).eq('id', id);
-
-    // ========================================================================
-    // STEP 7: Return result
-    // ========================================================================
+    await supabase
+      .from('reports')
+      .update({
+        generation_count: report.generation_count + 1,
+        last_generated_at: new Date().toISOString()
+      })
+      .eq('id', id);
 
     return NextResponse.json({
       generation: finalGeneration,
@@ -237,11 +250,9 @@ export async function POST(request: NextRequest, context: {
     });
   } catch (error: any) {
     console.error('❌ [Generate] Unexpected error:', error);
-    return NextResponse.json({
-      error: 'Failed to generate report',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Failed to generate report', details: error.message },
+      { status: 500 }
+    );
   }
 }

@@ -27,6 +27,7 @@ interface ExecutionContext {
   inputData?: any;
   isTest?: boolean;
 }
+
 interface ExecutionResult {
   success: boolean;
   output?: any;
@@ -36,24 +37,22 @@ interface ExecutionResult {
 // Evaluate conditions
 function evaluateConditions(conditions: any, data: any): boolean {
   if (!conditions) return true;
-  const {
-    operator = 'AND',
-    rules = []
-  } = conditions;
+
+  const { operator = 'AND', rules = [] } = conditions;
+
   if (operator === 'AND') {
     return rules.every((rule: any) => evaluateRule(rule, data));
   } else if (operator === 'OR') {
     return rules.some((rule: any) => evaluateRule(rule, data));
   }
+
   return true;
 }
+
 function evaluateRule(rule: any, data: any): boolean {
-  const {
-    field,
-    operator,
-    value
-  } = rule;
+  const { field, operator, value } = rule;
   const fieldValue = getFieldValue(data, field);
+
   switch (operator) {
     case 'equals':
       return fieldValue === value;
@@ -71,9 +70,11 @@ function evaluateRule(rule: any, data: any): boolean {
       return true;
   }
 }
+
 function getFieldValue(data: any, field: string): any {
   const parts = field.split('.');
   let value = data;
+
   for (const part of parts) {
     if (value && typeof value === 'object' && part in value) {
       value = value[part];
@@ -81,27 +82,34 @@ function getFieldValue(data: any, field: string): any {
       return undefined;
     }
   }
+
   return value;
 }
 
 // Execute action
-async function executeAction(actionConfig: any, context: ExecutionContext): Promise<ExecutionResult> {
-  const {
-    type,
-    params
-  } = actionConfig;
+async function executeAction(
+  actionConfig: any,
+  context: ExecutionContext
+): Promise<ExecutionResult> {
+  const { type, params } = actionConfig;
+
   try {
     switch (type) {
       case 'send_notification':
         return await sendNotification(params, context);
+
       case 'update_metric':
         return await updateMetric(params, context);
+
       case 'create_event':
         return await createEvent(params, context);
+
       case 'send_email':
         return await sendEmail(params, context);
+
       case 'webhook':
         return await callWebhook(params, context);
+
       default:
         throw new Error(`Unknown action type: ${type}`);
     }
@@ -129,6 +137,7 @@ async function sendNotification(params: any, context: ExecutionContext): Promise
     }
   };
 }
+
 async function updateMetric(params: any, context: ExecutionContext): Promise<ExecutionResult> {
   // In production, this would:
   // 1. Validate metric exists
@@ -144,6 +153,7 @@ async function updateMetric(params: any, context: ExecutionContext): Promise<Exe
     }
   };
 }
+
 async function createEvent(params: any, context: ExecutionContext): Promise<ExecutionResult> {
   // In production, this would:
   // 1. Create calendar_event
@@ -159,6 +169,7 @@ async function createEvent(params: any, context: ExecutionContext): Promise<Exec
     }
   };
 }
+
 async function sendEmail(params: any, context: ExecutionContext): Promise<ExecutionResult> {
   // In production, this would:
   // 1. Use email service (SendGrid, etc)
@@ -174,6 +185,7 @@ async function sendEmail(params: any, context: ExecutionContext): Promise<Execut
     }
   };
 }
+
 async function callWebhook(params: any, context: ExecutionContext): Promise<ExecutionResult> {
   try {
     const response = await fetch(params.url, {
@@ -184,6 +196,7 @@ async function callWebhook(params: any, context: ExecutionContext): Promise<Exec
       },
       body: JSON.stringify(params.body || {})
     });
+
     return {
       success: response.ok,
       output: {
@@ -202,89 +215,88 @@ async function callWebhook(params: any, context: ExecutionContext): Promise<Exec
 // ============================================================================
 // POST /api/automation/rules/[id]/execute - Execute rule
 // ============================================================================
-export async function POST(request: NextRequest, context: {
-  params: Promise<{
-    id: string;
-  }>;
-}) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const startTime = Date.now();
+
   try {
-    const {
-      id
-    } = await context.params;
+    const { id } = await context.params;
     const body = await request.json();
+
     const {
       execution_type = 'manual',
       trigger_event,
       input_data,
       is_test = false
     } = body;
+
     const supabase = await createClient();
 
     // ========================================================================
     // STEP 1: Fetch rule
     // ========================================================================
-    const {
-      data: rule,
-      error: ruleError
-    } = await supabase.from('automation_rules').select('*').eq('id', id).single();
+    const { data: rule, error: ruleError } = await supabase
+      .from('automation_rules')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     if (ruleError || !rule) {
-      return NextResponse.json({
-        error: 'Rule not found',
-        details: ruleError?.message
-      }, {
-        status: 404
-      });
+      return NextResponse.json(
+        { error: 'Rule not found', details: ruleError?.message },
+        { status: 404 }
+      );
     }
+
     // Check if rule is active (unless test mode)
     if (!rule.is_active && !is_test) {
-      return NextResponse.json({
-        error: 'Rule is not active'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Rule is not active' },
+        { status: 400 }
+      );
     }
 
     // ========================================================================
     // STEP 2: Create execution record
     // ========================================================================
-    const {
-      data: execution,
-      error: execError
-    } = await supabase.from('automation_executions').insert({
-      rule_id: id,
-      execution_type,
-      trigger_event,
-      input_data,
-      status: 'running'
-    }).select().single();
+    const { data: execution, error: execError } = await supabase
+      .from('automation_executions')
+      .insert({
+        rule_id: id,
+        execution_type,
+        trigger_event,
+        input_data,
+        status: 'running'
+      })
+      .select()
+      .single();
+
     if (execError || !execution) {
-      return NextResponse.json({
-        error: 'Failed to create execution record',
-        details: execError?.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create execution record', details: execError?.message },
+        { status: 500 }
+      );
     }
 
     // ========================================================================
     // STEP 3: Evaluate conditions
     // ========================================================================
     const conditionsMet = evaluateConditions(rule.conditions, input_data || {});
+
     if (!conditionsMet) {
-      await supabase.from('automation_executions').update({
-        status: 'success',
-        output_data: {
-          skipped: true,
-          reason: 'Conditions not met'
-        },
-        execution_time: Date.now() - startTime
-      }).eq('id', execution.id);
+      await supabase
+        .from('automation_executions')
+        .update({
+          status: 'success',
+          output_data: { skipped: true, reason: 'Conditions not met' },
+          execution_time: Date.now() - startTime
+        })
+        .eq('id', execution.id);
+
       return NextResponse.json({
-        execution: {
-          ...execution,
-          status: 'success'
-        },
+        execution: { ...execution, status: 'success' },
         skipped: true,
         reason: 'Conditions not met',
         message: 'Rule conditions not met, action skipped'
@@ -300,18 +312,23 @@ export async function POST(request: NextRequest, context: {
       inputData: input_data,
       isTest: is_test
     };
+
     const result = await executeAction(rule.action_config, executionContext);
 
     // ========================================================================
     // STEP 5: Update execution record
     // ========================================================================
     const executionTime = Date.now() - startTime;
-    await supabase.from('automation_executions').update({
-      status: result.success ? 'success' : 'failed',
-      output_data: result.output,
-      error_message: result.error,
-      execution_time: executionTime
-    }).eq('id', execution.id);
+
+    await supabase
+      .from('automation_executions')
+      .update({
+        status: result.success ? 'success' : 'failed',
+        output_data: result.output,
+        error_message: result.error,
+        execution_time: executionTime
+      })
+      .eq('id', execution.id);
 
     // ========================================================================
     // STEP 6: Update rule stats
@@ -323,10 +340,6 @@ export async function POST(request: NextRequest, context: {
         p_success: result.success
       });
     }
-
-    // ========================================================================
-    // STEP 7: Return result
-    // ========================================================================
 
     return NextResponse.json({
       execution: {
@@ -340,15 +353,15 @@ export async function POST(request: NextRequest, context: {
       output: result.output,
       error: result.error,
       executionTime,
-      message: result.success ? 'Automation executed successfully' : 'Automation execution failed'
+      message: result.success
+        ? 'Automation executed successfully'
+        : 'Automation execution failed'
     });
   } catch (error: any) {
     console.error('❌ [Execute] Unexpected error:', error);
-    return NextResponse.json({
-      error: 'Failed to execute automation',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Failed to execute automation', details: error.message },
+      { status: 500 }
+    );
   }
 }

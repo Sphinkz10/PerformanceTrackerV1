@@ -11,13 +11,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
     const {
       metricId,
-      entries,
-      // Array of { athlete_id, value, timestamp?, notes? }
+      entries, // Array of { athlete_id, value, timestamp?, notes? }
       workspaceId = 'default-workspace',
       sourceType = 'manual',
       createdBy
@@ -25,12 +26,12 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!metricId || !entries || !Array.isArray(entries) || entries.length === 0) {
-      return NextResponse.json({
-        error: 'Missing required fields: metricId, entries (non-empty array)'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Missing required fields: metricId, entries (non-empty array)' },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // Build bulk insert array
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       // Determine value type and field
       let valueField = 'value_numeric';
       let value = entry.value;
+
       if (typeof value === 'string') {
         valueField = 'value_text';
       } else if (typeof value === 'boolean') {
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
         valueField = 'value_json';
         value = JSON.stringify(value);
       }
+
       return {
         workspace_id: workspaceId,
         athlete_id: entry.athlete_id,
@@ -57,20 +60,21 @@ export async function POST(request: NextRequest) {
         created_by: createdBy
       };
     });
+
     // Bulk insert
-    const {
-      data: created,
-      error
-    } = await supabase.from('metric_updates').insert(updates).select();
+    const { data: created, error } = await supabase
+      .from('metric_updates')
+      .insert(updates)
+      .select();
+
     if (error) {
       console.error('Error bulk creating metric updates:', error);
-      return NextResponse.json({
-        error: 'Failed to bulk create metric updates',
-        details: error.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to bulk create metric updates', details: error.message },
+        { status: 500 }
+      );
     }
+
     return NextResponse.json({
       updates: created,
       count: created?.length || 0,
@@ -78,11 +82,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Unexpected error in POST /api/metric-updates/bulk:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }

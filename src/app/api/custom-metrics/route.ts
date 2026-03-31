@@ -20,77 +20,69 @@ import { createClient } from '@/utils/supabase/server';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const {
-      searchParams
-    } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
 
     // Get current user
-    const {
-      data: {
-        user
-      },
-      error: userError
-    } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      return NextResponse.json({
-        error: 'Unauthorized'
-      }, {
-        status: 401
-      });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     // Parse query params
     const workspaceId = searchParams.get('workspace_id');
     const category = searchParams.get('category');
     const visibility = searchParams.get('visibility');
+
     if (!workspaceId) {
-      return NextResponse.json({
-        error: 'workspace_id is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'workspace_id is required' },
+        { status: 400 }
+      );
     }
 
     // Build query
-    let query = supabase.from('custom_metrics').select('*').eq('workspace_id', workspaceId).order('created_at', {
-      ascending: false
-    });
+    let query = supabase
+      .from('custom_metrics')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false });
 
     // Apply filters
     if (category) {
       query = query.eq('category', category);
     }
+
     if (visibility) {
       query = query.eq('visibility', visibility);
     } else {
       // Default: show workspace and user's private metrics
       query = query.or(`visibility.eq.workspace,and(visibility.eq.private,created_by.eq.${user.id})`);
     }
-    const {
-      data: customMetrics,
-      error
-    } = await query;
+
+    const { data: customMetrics, error } = await query;
+
     if (error) {
       console.error('Error fetching custom metrics:', error);
-      return NextResponse.json({
-        error: 'Failed to fetch custom metrics',
-        details: error.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to fetch custom metrics', details: error.message },
+        { status: 500 }
+      );
     }
+
     return NextResponse.json({
       customMetrics: customMetrics || [],
       total: customMetrics?.length || 0
     });
+
   } catch (error: any) {
     console.error('Unexpected error in GET /api/custom-metrics:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -103,48 +95,42 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body.workspace_id) {
-      return NextResponse.json({
-        error: 'workspace_id is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'workspace_id is required' },
+        { status: 400 }
+      );
     }
+
     if (!body.name) {
-      return NextResponse.json({
-        error: 'name is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'name is required' },
+        { status: 400 }
+      );
     }
+
     if (!body.formula) {
-      return NextResponse.json({
-        error: 'formula is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'formula is required' },
+        { status: 400 }
+      );
     }
+
     if (!body.formula_type) {
-      return NextResponse.json({
-        error: 'formula_type is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'formula_type is required' },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // Get current user
-    const {
-      data: {
-        user
-      },
-      error: userError
-    } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      return NextResponse.json({
-        error: 'Unauthorized'
-      }, {
-        status: 401
-      });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     // ============================================================
@@ -154,11 +140,10 @@ export async function POST(request: NextRequest) {
     // TODO: Call formula validation endpoint
     // For now, basic validation
     if (!body.formula.trim()) {
-      return NextResponse.json({
-        error: 'Formula cannot be empty'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Formula cannot be empty' },
+        { status: 400 }
+      );
     }
 
     // ============================================================
@@ -186,18 +171,19 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-    const {
-      data: customMetric,
-      error: insertError
-    } = await supabase.from('custom_metrics').insert(customMetricRecord).select().single();
+
+    const { data: customMetric, error: insertError } = await supabase
+      .from('custom_metrics')
+      .insert(customMetricRecord)
+      .select()
+      .single();
+
     if (insertError) {
       console.error('Error creating custom metric:', insertError);
-      return NextResponse.json({
-        error: 'Failed to create custom metric',
-        details: insertError.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create custom metric', details: insertError.message },
+        { status: 500 }
+      );
     }
 
     // ============================================================
@@ -205,19 +191,17 @@ export async function POST(request: NextRequest) {
     // ============================================================
 
     if (body.calculate_now && body.athlete_ids) {}
+
     return NextResponse.json({
       customMetric,
       message: 'Custom metric created successfully'
-    }, {
-      status: 201
-    });
+    }, { status: 201 });
+
   } catch (error: any) {
     console.error('Unexpected error in POST /api/custom-metrics:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error.message
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }

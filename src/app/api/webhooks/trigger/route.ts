@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
     // Basic Authentication Check
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({
-        error: 'Unauthorized - Missing or invalid token'
-      }, {
-        status: 401
-      });
+      return NextResponse.json(
+        { error: 'Unauthorized - Missing or invalid token' },
+        { status: 401 }
+      );
     }
+
     const token = authHeader.substring(7);
 
     // In a real scenario, you'd verify the token against Supabase or your JWT logic
@@ -53,90 +53,104 @@ export async function POST(request: NextRequest) {
 
     // Fail-closed approach: Require the INTERNAL_API_KEY to be configured and matched.
     if (!expectedToken) {
-      return NextResponse.json({
-        error: 'Server Misconfiguration - INTERNAL_API_KEY is not set'
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Server Misconfiguration - INTERNAL_API_KEY is not set' },
+        { status: 500 }
+      );
     }
+
     if (token !== expectedToken) {
-      return NextResponse.json({
-        error: 'Unauthorized - Invalid API key'
-      }, {
-        status: 403
-      });
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid API key' },
+        { status: 403 }
+      );
     }
+
     const body = await request.json();
-    const {
-      workspaceId,
-      eventType,
-      eventData
-    } = body;
+
+    const { workspaceId, eventType, eventData } = body;
+
     if (!workspaceId || !eventType || !eventData) {
-      return NextResponse.json({
-        error: 'Missing required fields',
-        required: ['workspaceId', 'eventType', 'eventData']
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        {
+          error: 'Missing required fields',
+          required: ['workspaceId', 'eventType', 'eventData']
+        },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // ==============================================================
     // STEP 1: Find webhooks listening to this event
     // ==============================================================
-    const {
-      data: webhooks,
-      error: webhooksError
-    } = await supabase.from('webhooks').select('*').eq('workspace_id', workspaceId).eq('is_active', true).contains('events', [eventType]);
+    const { data: webhooks, error: webhooksError } = await supabase
+      .from('webhooks')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('is_active', true)
+      .contains('events', [eventType]);
+
     if (webhooksError) {
       console.error('Error fetching webhooks:', webhooksError);
-      return NextResponse.json({
-        error: 'Failed to fetch webhooks',
-        details: webhooksError.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to fetch webhooks', details: webhooksError.message },
+        { status: 500 }
+      );
     }
+
     if (!webhooks || webhooks.length === 0) {
       return NextResponse.json({
         success: true,
         triggered: 0,
-        message: 'No webhooks found for this event'
+        message: 'No webhooks found for this event',
       });
     }
+
     // ==============================================================
     // STEP 2: Trigger each webhook
     // ==============================================================
-    const deliveryPromises = webhooks.map(webhook => deliverWebhook(webhook, eventType, eventData, supabase));
+    const deliveryPromises = webhooks.map(webhook =>
+      deliverWebhook(webhook, eventType, eventData, supabase)
+    );
+
     const results = await Promise.allSettled(deliveryPromises);
 
     // Count successes and failures
     const successes = results.filter(r => r.status === 'fulfilled').length;
     const failures = results.filter(r => r.status === 'rejected').length;
+
     return NextResponse.json({
       success: true,
       triggered: webhooks.length,
       succeeded: successes,
       failed: failures,
-      message: `Triggered ${webhooks.length} webhooks (${successes} succeeded, ${failures} failed)`
+      message: `Triggered ${webhooks.length} webhooks (${successes} succeeded, ${failures} failed)`,
     });
   } catch (error: any) {
     console.error('❌ CRITICAL ERROR in POST /api/webhooks/trigger:', error);
-    return NextResponse.json({
-      error: 'Failed to trigger webhooks',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      {
+        error: 'Failed to trigger webhooks',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
   }
 }
 
 // ============================================================================
 // HELPER: Deliver webhook
 // ============================================================================
-async function deliverWebhook(webhook: any, eventType: string, eventData: any, supabase: any, attemptNumber: number = 1): Promise<void> {
+async function deliverWebhook(
+  webhook: any,
+  eventType: string,
+  eventData: any,
+  supabase: any,
+  attemptNumber: number = 1
+): Promise<void> {
   const startTime = Date.now();
 
   // Check if event matches filters (if any)
@@ -151,12 +165,15 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
     data: eventData,
     webhook: {
       id: webhook.id,
-      name: webhook.name
-    }
+      name: webhook.name,
+    },
   };
 
   // Generate HMAC signature
-  const signature = crypto.createHmac('sha256', webhook.secret).update(JSON.stringify(payload)).digest('hex');
+  const signature = crypto
+    .createHmac('sha256', webhook.secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
 
   // Prepare headers
   const headers: any = {
@@ -165,7 +182,7 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
     'X-Webhook-Event': eventType,
     'X-Webhook-ID': webhook.id,
     'X-Webhook-Attempt': attemptNumber.toString(),
-    'User-Agent': 'PerformTrack-Webhooks/1.0'
+    'User-Agent': 'PerformTrack-Webhooks/1.0',
   };
 
   // Add custom headers
@@ -179,16 +196,19 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
   let responseHeaders: any = null;
   let errorMessage: string | null = null;
   let deliveryStatus: 'sent' | 'failed' = 'sent';
+
   try {
     const response = await fetch(webhook.url, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(webhook.timeout_seconds * 1000)
+      signal: AbortSignal.timeout(webhook.timeout_seconds * 1000),
     });
+
     httpStatus = response.status;
     responseBody = await response.text();
     responseHeaders = Object.fromEntries(response.headers.entries());
+
     if (response.status < 200 || response.status >= 300) {
       deliveryStatus = 'failed';
       errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -198,6 +218,7 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
     errorMessage = error.message;
     console.error(`❌ Webhook ${webhook.id} failed:`, errorMessage);
   }
+
   const duration = Date.now() - startTime;
 
   // ==============================================================
@@ -214,32 +235,37 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
     response_headers: responseHeaders,
     error_message: errorMessage,
     sent_at: new Date().toISOString(),
-    duration_ms: duration
+    duration_ms: duration,
   });
 
   // ==============================================================
   // Update webhook stats
   // ==============================================================
   if (deliveryStatus === 'sent') {
-    await supabase.from('webhooks').update({
-      last_triggered_at: new Date().toISOString(),
-      success_count: supabase.raw('success_count + 1')
-    }).eq('id', webhook.id);
+    await supabase
+      .from('webhooks')
+      .update({
+        last_triggered_at: new Date().toISOString(),
+        success_count: supabase.raw('success_count + 1'),
+      })
+      .eq('id', webhook.id);
   } else {
-    await supabase.from('webhooks').update({
-      failure_count: supabase.raw('failure_count + 1')
-    }).eq('id', webhook.id);
+    await supabase
+      .from('webhooks')
+      .update({
+        failure_count: supabase.raw('failure_count + 1'),
+      })
+      .eq('id', webhook.id);
 
     // ==============================================================
     // Retry logic (if enabled)
     // ==============================================================
-    const retryStrategy = webhook.retry_strategy || {
-      maxRetries: 3,
-      backoff: 'exponential'
-    };
+    const retryStrategy = webhook.retry_strategy || { maxRetries: 3, backoff: 'exponential' };
+
     if (attemptNumber < retryStrategy.maxRetries) {
       // Calculate backoff delay
       let delayMs = 0;
+
       if (retryStrategy.backoff === 'exponential') {
         delayMs = Math.pow(2, attemptNumber) * 1000; // 2s, 4s, 8s
       } else if (retryStrategy.backoff === 'linear') {
@@ -247,12 +273,6 @@ async function deliverWebhook(webhook: any, eventType: string, eventData: any, s
       } else {
         delayMs = 5000; // Fixed 5s
       }
-
-      // In production, use a job queue (Bull, BullMQ, etc.)
-      // For now, just log that retry should happen
-      // setTimeout(() => {
-      //   deliverWebhook(webhook, eventType, eventData, supabase, attemptNumber + 1);
-      // }, delayMs);
     }
   }
 }
@@ -269,5 +289,6 @@ function matchesFilters(eventData: any, filters: any): boolean {
       return false;
     }
   }
+
   return true;
 }

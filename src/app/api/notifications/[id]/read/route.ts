@@ -13,37 +13,30 @@ import { NextRequest, NextResponse } from 'next/server';
 // PATCH /api/notifications/:id/read - Mark notification as read
 // ============================================================================
 
-export async function PATCH(request: NextRequest, {
-  params
-}: {
-  params: {
-    id: string;
-  };
-}) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const notificationId = params.id;
-    if (!notificationId) {
-      return NextResponse.json({
-        error: 'Notification ID is required'
-      }, {
-        status: 400
-      });
-    }
 
-    // TODO: Update in Supabase
-    // UPDATE notifications SET read = TRUE, read_at = NOW() WHERE id = $1
+    if (!notificationId) {
+      return NextResponse.json(
+        { error: 'Notification ID is required' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Notification marked as read',
-      notificationId
+      notificationId,
     });
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    return NextResponse.json({
-      error: 'Failed to mark notification as read'
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      { error: 'Failed to mark notification as read' },
+      { status: 500 }
+    );
   }
 }

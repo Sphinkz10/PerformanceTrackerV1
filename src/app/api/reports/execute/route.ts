@@ -50,6 +50,7 @@ class ReportBuilder {
   private workspaceId: string;
   private config: any;
   private parameters: any;
+
   constructor(supabase: any, workspaceId: string, config: any, parameters: any) {
     this.supabase = supabase;
     this.workspaceId = workspaceId;
@@ -60,13 +61,12 @@ class ReportBuilder {
   /**
    * Main execution method
    */
-  async execute(): Promise<{
-    data: any;
-    rowCount: number;
-  }> {
+  async execute(): Promise<{ data: any; rowCount: number }> {
     const startTime = Date.now();
+
     try {
       let data: any;
+
       switch (this.config.dataSource) {
         case 'sessions':
           data = await this.buildSessionsReport();
@@ -83,10 +83,12 @@ class ReportBuilder {
         default:
           throw new Error(`Unknown data source: ${this.config.dataSource}`);
       }
+
       const processingTime = Date.now() - startTime;
+
       return {
         data,
-        rowCount: data.length
+        rowCount: data.length,
       };
     } catch (error: any) {
       console.error('❌ Report execution failed:', error);
@@ -98,13 +100,12 @@ class ReportBuilder {
    * Build sessions report
    */
   private async buildSessionsReport(): Promise<any[]> {
-    const {
-      dateRange,
-      athleteIds
-    } = this.parameters;
+    const { dateRange, athleteIds } = this.parameters;
 
     // Base query
-    let query = this.supabase.from('sessions').select(`
+    let query = this.supabase
+      .from('sessions')
+      .select(`
         id,
         started_at,
         completed_at,
@@ -122,9 +123,9 @@ class ReportBuilder {
             name
           )
         )
-      `).eq('workspace_id', this.workspaceId).order('started_at', {
-      ascending: false
-    });
+      `)
+      .eq('workspace_id', this.workspaceId)
+      .order('started_at', { ascending: false });
 
     // Apply filters
     if (dateRange?.start) {
@@ -133,16 +134,19 @@ class ReportBuilder {
     if (dateRange?.end) {
       query = query.lte('started_at', dateRange.end);
     }
-    const {
-      data: sessions,
-      error
-    } = await query;
+
+    const { data: sessions, error } = await query;
+
     if (error) throw error;
 
     // Filter by athletes if specified
     let filteredSessions = sessions || [];
     if (athleteIds && athleteIds.length > 0) {
-      filteredSessions = filteredSessions.filter((session: any) => session.session_athletes.some((sa: any) => athleteIds.includes(sa.athlete_id)));
+      filteredSessions = filteredSessions.filter((session: any) =>
+        session.session_athletes.some((sa: any) =>
+          athleteIds.includes(sa.athlete_id)
+        )
+      );
     }
 
     // Transform data based on groupBy and aggregations
@@ -153,12 +157,11 @@ class ReportBuilder {
    * Build metrics report
    */
   private async buildMetricsReport(): Promise<any[]> {
-    const {
-      dateRange,
-      athleteIds,
-      metricIds
-    } = this.parameters;
-    let query = this.supabase.from('metric_updates').select(`
+    const { dateRange, athleteIds, metricIds } = this.parameters;
+
+    let query = this.supabase
+      .from('metric_updates')
+      .select(`
         id,
         metric_id,
         athlete_id,
@@ -172,9 +175,8 @@ class ReportBuilder {
         athletes (
           name
         )
-      `).order('timestamp', {
-      ascending: false
-    });
+      `)
+      .order('timestamp', { ascending: false });
 
     // Apply filters
     if (dateRange?.start) {
@@ -189,11 +191,11 @@ class ReportBuilder {
     if (metricIds && metricIds.length > 0) {
       query = query.in('metric_id', metricIds);
     }
-    const {
-      data: metrics,
-      error
-    } = await query;
+
+    const { data: metrics, error } = await query;
+
     if (error) throw error;
+
     return this.applyTransformations(metrics || []);
   }
 
@@ -201,49 +203,53 @@ class ReportBuilder {
    * Build athletes report
    */
   private async buildAthletesReport(): Promise<any[]> {
-    const {
-      athleteIds
-    } = this.parameters;
-    let query = this.supabase.from('athletes').select(`
+    const { athleteIds } = this.parameters;
+
+    let query = this.supabase
+      .from('athletes')
+      .select(`
         id,
         name,
         email,
         date_of_birth,
         created_at,
         metadata
-      `).eq('workspace_id', this.workspaceId).eq('is_active', true);
+      `)
+      .eq('workspace_id', this.workspaceId)
+      .eq('is_active', true);
+
     if (athleteIds && athleteIds.length > 0) {
       query = query.in('id', athleteIds);
     }
-    const {
-      data: athletes,
-      error
-    } = await query;
+
+    const { data: athletes, error } = await query;
+
     if (error) throw error;
 
     // Enrich with stats
-    const enrichedAthletes = await Promise.all((athletes || []).map(async (athlete: any) => {
-      // Get session count
-      const {
-        count: sessionCount
-      } = await this.supabase.from('session_athletes').select('*', {
-        count: 'exact',
-        head: true
-      }).eq('athlete_id', athlete.id);
+    const enrichedAthletes = await Promise.all(
+      (athletes || []).map(async (athlete: any) => {
+        // Get session count
+        const { count: sessionCount } = await this.supabase
+          .from('session_athletes')
+          .select('*', { count: 'exact', head: true })
+          .eq('athlete_id', athlete.id);
 
-      // Get PR count
-      const {
-        count: prCount
-      } = await this.supabase.from('personal_records').select('*', {
-        count: 'exact',
-        head: true
-      }).eq('athlete_id', athlete.id).eq('is_current', true);
-      return {
-        ...athlete,
-        sessionCount: sessionCount || 0,
-        personalRecordsCount: prCount || 0
-      };
-    }));
+        // Get PR count
+        const { count: prCount } = await this.supabase
+          .from('personal_records')
+          .select('*', { count: 'exact', head: true })
+          .eq('athlete_id', athlete.id)
+          .eq('is_current', true);
+
+        return {
+          ...athlete,
+          sessionCount: sessionCount || 0,
+          personalRecordsCount: prCount || 0,
+        };
+      })
+    );
+
     return this.applyTransformations(enrichedAthletes);
   }
 
@@ -251,12 +257,6 @@ class ReportBuilder {
    * Build custom report (advanced SQL)
    */
   private async buildCustomReport(): Promise<any[]> {
-    // For custom reports, execute raw SQL (carefully!)
-    // This is advanced and should have strict validation
-
-    // For now, return empty array
-    // In production, you'd validate and execute custom SQL
-
     return [];
   }
 
@@ -270,6 +270,7 @@ class ReportBuilder {
 
     // Group data
     const grouped = new Map();
+
     data.forEach(item => {
       const key = this.config.groupBy.map((field: string) => {
         // Handle nested fields (e.g., "athletes.name")
@@ -280,6 +281,7 @@ class ReportBuilder {
         }
         return value;
       }).join('|');
+
       if (!grouped.has(key)) {
         grouped.set(key, []);
       }
@@ -288,6 +290,7 @@ class ReportBuilder {
 
     // Apply aggregations
     const result: any[] = [];
+
     grouped.forEach((items, key) => {
       const row: any = {};
 
@@ -300,12 +303,15 @@ class ReportBuilder {
       if (this.config.aggregations) {
         this.config.aggregations.forEach((agg: any) => {
           const values = items.map((item: any) => item[agg.field]).filter((v: any) => v !== null && v !== undefined);
+
           switch (agg.function) {
             case 'sum':
               row[`${agg.field}_sum`] = values.reduce((sum: number, v: number) => sum + v, 0);
               break;
             case 'avg':
-              row[`${agg.field}_avg`] = values.length > 0 ? values.reduce((sum: number, v: number) => sum + v, 0) / values.length : 0;
+              row[`${agg.field}_avg`] = values.length > 0
+                ? values.reduce((sum: number, v: number) => sum + v, 0) / values.length
+                : 0;
               break;
             case 'min':
               row[`${agg.field}_min`] = values.length > 0 ? Math.min(...values) : 0;
@@ -319,8 +325,10 @@ class ReportBuilder {
           }
         });
       }
+
       result.push(row);
     });
+
     return result;
   }
 }
@@ -330,22 +338,20 @@ class ReportBuilder {
 // ============================================================================
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+
   try {
     const body = await request.json();
 
     // Validate required fields
-    const {
-      workspaceId,
-      parameters = {},
-      executedBy
-    } = body;
+    const { workspaceId, parameters = {}, executedBy } = body;
+
     if (!workspaceId) {
-      return NextResponse.json({
-        error: 'workspaceId is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'workspaceId is required' },
+        { status: 400 }
+      );
     }
+
     const supabase = await createClient();
 
     // ==============================================================
@@ -353,99 +359,115 @@ export async function POST(request: NextRequest) {
     // ==============================================================
     let config: any;
     let templateId: string | null = null;
+
     if (body.templateId) {
       // Load from template
-      const {
-        data: template,
-        error: templateError
-      } = await supabase.from('report_templates').select('*').eq('id', body.templateId).single();
+      const { data: template, error: templateError } = await supabase
+        .from('report_templates')
+        .select('*')
+        .eq('id', body.templateId)
+        .single();
+
       if (templateError || !template) {
-        return NextResponse.json({
-          error: 'Template not found'
-        }, {
-          status: 404
-        });
+        return NextResponse.json(
+          { error: 'Template not found' },
+          { status: 404 }
+        );
       }
+
       config = template.config;
       templateId = template.id;
+
     } else if (body.config) {
       // Ad-hoc report
       config = body.config;
+
     } else {
-      return NextResponse.json({
-        error: 'Either templateId or config is required'
-      }, {
-        status: 400
-      });
+      return NextResponse.json(
+        { error: 'Either templateId or config is required' },
+        { status: 400 }
+      );
     }
 
     // Merge template filters with runtime parameters
     const mergedParameters = {
       ...config.filters,
-      ...parameters
+      ...parameters,
     };
 
     // ==============================================================
     // STEP 2: Create execution record (pending)
     // ==============================================================
-    const {
-      data: execution,
-      error: executionError
-    } = await supabase.from('report_executions').insert({
-      workspace_id: workspaceId,
-      template_id: templateId,
-      executed_by: executedBy,
-      parameters: mergedParameters,
-      status: 'processing'
-    }).select().single();
+    const { data: execution, error: executionError } = await supabase
+      .from('report_executions')
+      .insert({
+        workspace_id: workspaceId,
+        template_id: templateId,
+        executed_by: executedBy,
+        parameters: mergedParameters,
+        status: 'processing',
+      })
+      .select()
+      .single();
+
     if (executionError) {
       console.error('Error creating execution record:', executionError);
-      return NextResponse.json({
-        error: 'Failed to create execution',
-        details: executionError.message
-      }, {
-        status: 500
-      });
+      return NextResponse.json(
+        { error: 'Failed to create execution', details: executionError.message },
+        { status: 500 }
+      );
     }
 
     // ==============================================================
     // STEP 3: Execute report
     // ==============================================================
     const builder = new ReportBuilder(supabase, workspaceId, config, mergedParameters);
+
     let resultData: any;
     let rowCount: number;
+
     try {
       const result = await builder.execute();
       resultData = result.data;
       rowCount = result.rowCount;
+
     } catch (error: any) {
       // Update execution as failed
-      await supabase.from('report_executions').update({
-        status: 'failed',
-        error_message: error.message,
-        processing_time_ms: Date.now() - startTime
-      }).eq('id', execution.id);
-      return NextResponse.json({
-        error: 'Report execution failed',
-        details: error.message,
-        executionId: execution.id
-      }, {
-        status: 500
-      });
+      await supabase
+        .from('report_executions')
+        .update({
+          status: 'failed',
+          error_message: error.message,
+          processing_time_ms: Date.now() - startTime,
+        })
+        .eq('id', execution.id);
+
+      return NextResponse.json(
+        {
+          error: 'Report execution failed',
+          details: error.message,
+          executionId: execution.id,
+        },
+        { status: 500 }
+      );
     }
 
     // ==============================================================
     // STEP 4: Update execution as completed
     // ==============================================================
     const processingTime = Date.now() - startTime;
-    const {
-      data: updatedExecution
-    } = await supabase.from('report_executions').update({
-      status: 'completed',
-      result_data: parameters.format === 'json' ? resultData : null,
-      row_count: rowCount,
-      processing_time_ms: processingTime
-    }).eq('id', execution.id).select().single();
+
+    const { data: updatedExecution } = await supabase
+      .from('report_executions')
+      .update({
+        status: 'completed',
+        result_data: parameters.format === 'json' ? resultData : null,
+        row_count: rowCount,
+        processing_time_ms: processingTime,
+      })
+      .eq('id', execution.id)
+      .select()
+      .single();
 
     // ==============================================================
     // STEP 5: DISPATCH REPORT EXECUTED EVENT
@@ -457,9 +479,9 @@ export async function POST(request: NextRequest) {
         executionId: execution.id,
         templateId,
         rowCount,
-        processingTime
+        processingTime,
       },
-      userId: executedBy
+      userId: executedBy,
     }).catch(err => {
       console.error('❌ Error dispatching report event:', err);
     });
@@ -475,20 +497,20 @@ export async function POST(request: NextRequest) {
         resultData: parameters.format === 'json' ? resultData : null,
         rowCount,
         processingTime,
-        createdAt: execution.created_at
+        createdAt: execution.created_at,
       },
-      message: `Report executed successfully (${rowCount} rows in ${processingTime}ms)`
-    }, {
-      status: 201
-    });
+      message: `Report executed successfully (${rowCount} rows in ${processingTime}ms)`,
+    }, { status: 201 });
+
   } catch (error: any) {
     console.error('❌ CRITICAL ERROR in POST /api/reports/execute:', error);
-    return NextResponse.json({
-      error: 'Failed to execute report',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, {
-      status: 500
-    });
+    return NextResponse.json(
+      {
+        error: 'Failed to execute report',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
   }
 }
