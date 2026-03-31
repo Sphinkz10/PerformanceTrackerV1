@@ -35,82 +35,63 @@ import type { TriggerEngineRequest, EngineRunResult } from '@/lib/decision-engin
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
   try {
     // Parse request body
     const body: TriggerEngineRequest = await request.json();
-    
+
     // Validate workspaceId
     if (!body.workspaceId) {
-      return NextResponse.json(
-        { error: 'workspaceId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        error: 'workspaceId is required'
+      }, {
+        status: 400
+      });
     }
-    
+
     // Check if specific athlete requested (faster)
     if (body.athleteIds && body.athleteIds.length === 1) {
-      console.log(`[API] Evaluating single athlete: ${body.athleteIds[0]}`);
-      
-      const decisions = await runDecisionEngineForAthlete(
-        body.athleteIds[0],
-        body.workspaceId,
-        {
-          skipCooldown: body.force,
-          dryRun: true, // Always dry run for single athlete
-        }
-      );
-      
-      return NextResponse.json(
-        {
-          success: true,
-          mode: 'single-athlete',
-          athleteId: body.athleteIds[0],
-          decisions,
-          duration: Date.now() - startTime,
-        },
-        { status: 200 }
-      );
+      const decisions = await runDecisionEngineForAthlete(body.athleteIds[0], body.workspaceId, {
+        skipCooldown: body.force,
+        dryRun: true // Always dry run for single athlete
+      });
+      return NextResponse.json({
+        success: true,
+        mode: 'single-athlete',
+        athleteId: body.athleteIds[0],
+        decisions,
+        duration: Date.now() - startTime
+      }, {
+        status: 200
+      });
     }
-    
+
     // Run full engine
-    console.log(`[API] Triggering decision engine for workspace: ${body.workspaceId}`);
-    
+
     const result: EngineRunResult = await runDecisionEngine(body.workspaceId, {
       athleteIds: body.athleteIds,
       ruleIds: body.ruleIds,
       skipCooldown: body.force,
-      dryRun: false, // Actually save decisions
+      dryRun: false // Actually save decisions
     });
-    
+
     // Log result
-    console.log(`[API] Engine run completed:`, {
-      athletes: result.athletesEvaluated,
-      decisions: result.decisionsCreated,
-      errors: result.errors.length,
-      duration: result.duration,
-    });
-    
+
     // Return result
-    return NextResponse.json(
-      {
-        success: true,
-        result,
-      },
-      { status: 200 }
-    );
-    
+    return NextResponse.json({
+      success: true,
+      result
+    }, {
+      status: 200
+    });
   } catch (error) {
     console.error('[API] Error triggering engine:', error);
-    
-    return NextResponse.json(
-      {
-        error: 'Failed to trigger decision engine',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        duration: Date.now() - startTime,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Failed to trigger decision engine',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      duration: Date.now() - startTime
+    }, {
+      status: 500
+    });
   }
 }
 
@@ -129,33 +110,27 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('[API] Checking engine health...');
-    
     const health = await checkEngineHealth();
-    
     const response = {
       healthy: health.healthy,
       timestamp: new Date().toISOString(),
       checks: health.checks,
       errors: health.errors,
       version: '1.0.0',
-      uptime: process.uptime(),
+      uptime: process.uptime()
     };
-    
     const statusCode = health.healthy ? 200 : 503;
-    
-    return NextResponse.json(response, { status: statusCode });
-    
+    return NextResponse.json(response, {
+      status: statusCode
+    });
   } catch (error) {
     console.error('[API] Error checking engine health:', error);
-    
-    return NextResponse.json(
-      {
-        healthy: false,
-        error: 'Health check failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      healthy: false,
+      error: 'Health check failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, {
+      status: 500
+    });
   }
 }

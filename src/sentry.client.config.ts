@@ -18,6 +18,7 @@ Sentry.init({
 
   integrations: [
     new Sentry.Replay({
+      // COMP-003: maskAllText and maskAllInputs enabled for compliance
       maskAllText: true,
       maskAllInputs: true,
       blockAllMedia: true,

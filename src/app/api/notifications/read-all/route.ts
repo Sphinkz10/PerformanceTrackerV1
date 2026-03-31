@@ -16,19 +16,21 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { workspaceId, userId } = body;
-
+    const {
+      workspaceId,
+      userId
+    } = body;
     if (!workspaceId) {
-      return NextResponse.json(
-        { error: 'workspaceId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        error: 'workspaceId is required'
+      }, {
+        status: 400
+      });
     }
 
     // Build update query
     const conditions: string[] = ['workspace_id = $1', 'read = FALSE'];
     const values: any[] = [workspaceId];
-
     if (userId) {
       conditions.push('user_id = $2');
       values.push(userId);
@@ -39,18 +41,17 @@ export async function PATCH(request: NextRequest) {
     // SET read = TRUE, read_at = NOW()
     // WHERE workspace_id = $1 AND read = FALSE [AND user_id = $2]
 
-    console.log(`Marked all notifications as read for workspace ${workspaceId}`);
-
     return NextResponse.json({
       success: true,
       message: 'All notifications marked as read',
-      workspaceId,
+      workspaceId
     });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
-    return NextResponse.json(
-      { error: 'Failed to mark all notifications as read' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Failed to mark all notifications as read'
+    }, {
+      status: 500
+    });
   }
 }
