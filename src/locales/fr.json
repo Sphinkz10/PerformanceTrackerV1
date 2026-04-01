@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Performance Tracker",
+    "slogan": "La performance n'est pas un hasard, c'est une science."
+  },
+  "login": {
+    "title": "Bienvenue.",
+    "subtitle": "Connectez-vous à votre compte {brandName}.",
+    "email_label": "Email",
+    "email_placeholder": "manager@equipe.com",
+    "password_label": "Mot de passe",
+    "forgot_password": "Mot de passe oublié",
+    "cta_button": "SE CONNECTER",
+    "divider": "ou connectez-vous via",
+    "no_account": "Vous n'avez pas de compte ? S'inscrire."
+  },
+  "support": "Support"
+}
