@@ -61,6 +61,8 @@ import { ActiveAthletesModal } from "./components/modals/ActiveAthletesModal";
 import { TodaySessionsModal } from "./components/modals/TodaySessionsModal";
 import { AlertsModal } from "./components/modals/AlertsModal";
 import { TestExecuteSession } from "./TestExecuteSession";
+import { LoginV2 } from "./components/auth/LoginV2";
+import { I18nProvider } from "./contexts/I18nContext";
 
 // ============================================
 // TYPES & INTERFACES
@@ -806,6 +808,15 @@ export default function App() {
   // Check if we're on the test page
   if (window.location.pathname === '/test-execute') {
     return <TestExecuteSession />;
+  }
+
+  // Check if we're on the new Login V2 prototype page
+  if (window.location.pathname === '/login-v2') {
+    return (
+      <I18nProvider>
+        <LoginV2 />
+      </I18nProvider>
+    );
   }
 
   return (

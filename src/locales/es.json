@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Performance Tracker",
+    "slogan": "El rendimiento no es casualidad, es una ciencia."
+  },
+  "login": {
+    "title": "Bienvenido.",
+    "subtitle": "Inicia sesión en tu cuenta de {brandName}.",
+    "email_label": "Correo electrónico",
+    "email_placeholder": "manager@equipo.com",
+    "password_label": "Contraseña",
+    "forgot_password": "Olvidé mi contraseña",
+    "cta_button": "INICIAR SESIÓN",
+    "divider": "o conéctate a través de",
+    "no_account": "¿No tienes cuenta? Regístrate."
+  },
+  "support": "Soporte"
+}
