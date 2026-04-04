@@ -61,6 +61,7 @@ import { ActiveAthletesModal } from "./components/modals/ActiveAthletesModal";
 import { TodaySessionsModal } from "./components/modals/TodaySessionsModal";
 import { AlertsModal } from "./components/modals/AlertsModal";
 import { TestExecuteSession } from "./TestExecuteSession";
+import LunaDashboardPage from './pages/LunaDashboardPage';
 import { LoginV2 } from "./components/auth/LoginV2";
 import { I18nProvider } from "./contexts/I18nContext";
 
@@ -808,6 +809,10 @@ export default function App() {
   // Check if we're on the test page
   if (window.location.pathname === '/test-execute') {
     return <TestExecuteSession />;
+  }
+
+  if (window.location.pathname === '/luna-dashboard') {
+    return <LunaDashboardPage />;
   }
 
   // Check if we're on the new Login V2 prototype page
