@@ -63,6 +63,7 @@ import { AlertsModal } from "./components/modals/AlertsModal";
 import { TestExecuteSession } from "./TestExecuteSession";
 import LunaDashboardPage from './pages/LunaDashboardPage';
 import { LoginV2 } from "./components/auth/LoginV2";
+import { LunaLogin } from "./components/luna-obsidian/auth/LunaLogin";
 import { I18nProvider } from "./contexts/I18nContext";
 
 // ============================================
@@ -826,10 +827,27 @@ export default function App() {
 
   return (
     <AppProvider>
+      <AppRouter />
+    </AppProvider>
+  );
+}
+
+// Sub-component to handle routing where useApp() is accessible
+function AppRouter() {
+  if (window.location.pathname === '/luna-login') {
+    return (
+      <I18nProvider>
+        <LunaLogin />
+      </I18nProvider>
+    );
+  }
+
+  return (
+    <>
       <AuthenticatedApp />
       <Toaster position="top-right" />
       <CookieConsent />
-    </AppProvider>
+    </>
   );
 }
 
