@@ -185,7 +185,9 @@ function AppContent() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleFABAction = (action: string) => {
@@ -812,10 +814,6 @@ export default function App() {
     return <TestExecuteSession />;
   }
 
-  if (window.location.pathname === '/luna-dashboard') {
-    return <LunaDashboardPage />;
-  }
-
   // Check if we're on the new Login V2 prototype page
   if (window.location.pathname === '/login-v2') {
     return (
@@ -914,6 +912,9 @@ function AuthenticatedApp() {
 
   // Authenticated as Coach → Show full Coach App
   if (isCoach) {
+    if (window.location.pathname === '/luna-dashboard') {
+      return <LunaDashboardPage />;
+    }
     return <AppContent />;
   }
 

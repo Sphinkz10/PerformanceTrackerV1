@@ -55,7 +55,9 @@ export function ResponsiveModal({
     };
 
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, [isOpen, closeOnEscape, onClose]);
 
   // Prevent body scroll when modal is open
