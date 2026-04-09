@@ -2,19 +2,8 @@
 > performance-tracker-v1@0.1.0 dev
 > vite
 
-Port 3000 is in use, trying another one...
 
-  VITE v6.4.1  ready in 406 ms
+  VITE v6.4.1  ready in 476 ms
 
-  ➜  Local:   http://localhost:3001/
+  ➜  Local:   http://localhost:3000/
   ➜  Network: use --host to expose
-5:56:53 PM [vite] (client) page reload playwright-report/index.html
-5:59:20 PM [vite] (client) hmr update /src/components/luna-obsidian/auth/LunaLogin.tsx, /src/index.css
-6:05:08 PM [vite] (client) page reload playwright-report/index.html
-6:05:08 PM [vite] (client) page reload playwright-report/index.html
-6:07:42 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
-6:08:47 PM [vite] (client) page reload playwright-report/index.html
-6:27:08 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
-6:28:14 PM [vite] (client) page reload playwright-report/index.html
-6:28:14 PM [vite] (client) page reload playwright-report/index.html
-6:29:48 PM [vite] (client) page reload verification/luna-login-verification.py
