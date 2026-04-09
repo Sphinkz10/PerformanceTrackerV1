@@ -130,6 +130,9 @@ export function LunaLogin() {
     try {
       await login(email, password);
       showCustomToast(`Bem-vindo, ${email.split('@')[0]}!`);
+      // @ts-ignore: ignoring router errors for overriding login bypass
+      window.history.pushState({}, '', '/luna-dashboard');
+      window.dispatchEvent(new Event('popstate'));
     } catch (error) {
       console.error(error);
       showCustomToast('Erro ao iniciar sessão');
