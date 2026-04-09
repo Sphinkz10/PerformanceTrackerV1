@@ -1,11 +1,11 @@
 import React from 'react';
-import { MainLayout } from '../components/luna-obsidian/layout/MainLayout';
+import { LunaDashboardLayout } from '../components/luna-obsidian/layout/LunaDashboardLayout';
 import { MainDashboard } from '../components/luna-obsidian/dashboard/MainDashboard';
 
 export default function LunaDashboardPage() {
   return (
-    <MainLayout>
+    <LunaDashboardLayout>
       <MainDashboard />
-    </MainLayout>
+    </LunaDashboardLayout>
   );
 }
