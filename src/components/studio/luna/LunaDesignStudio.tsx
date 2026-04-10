@@ -4,13 +4,168 @@ import { LunaTopBar } from './LunaTopBar';
 import { LunaSidebar } from './LunaSidebar';
 import { LunaWorkspace } from './LunaWorkspace';
 import { LunaPropertiesPanel } from './LunaPropertiesPanel';
-import { Calculator, X, Plus, Dumbbell, SlidersHorizontal } from 'lucide-react';
-import { LunaProvider } from './LunaContext';
+import { Calculator, X, Plus, Dumbbell, SlidersHorizontal, Activity, Circle } from 'lucide-react';
+import { LunaProvider, useLunaStore } from './LunaContext';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { LunaLibraryItem } from './types';
 
 interface Toast {
   id: number;
   message: string;
 }
+
+// Render component for DragOverlay
+const LibraryItemDragOverlay: React.FC<{ item: LunaLibraryItem }> = ({ item }) => {
+  let Icon = Dumbbell;
+  if (item.type === 'compound') Icon = Dumbbell;
+  if (item.type === 'isolation') Icon = Circle;
+  if (item.type === 'bodyweight') Icon = Activity;
+
+  return (
+    <div className={`${styles.libCard} ${styles.dragOverlay}`}>
+      <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
+        <Icon size={14} />
+      </div>
+      <div className={styles.libCardText}>
+        <div className={styles.libCardName}>{item.name}</div>
+        <div className={styles.libCardMeta}>{item.category}</div>
+      </div>
+      <button className={styles.libCardAdd}>
+        <Plus size={10} />
+      </button>
+    </div>
+  );
+};
+
+const LunaDndWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentWorkout, addExerciseToBlock, reorderExercises, moveExerciseBetweenBlocks } = useLunaStore();
+  const [activeItem, setActiveItem] = useState<LunaLibraryItem | null>(null);
+  const [activeSortableId, setActiveSortableId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const isLibraryItem = active.data.current?.type === 'LibraryItem';
+
+    if (isLibraryItem) {
+      setActiveItem(active.data.current?.item as LunaLibraryItem);
+    } else {
+      setActiveSortableId(active.id as string);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    // Only handle cross-block movement of sortable items during drag over
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeData = active.data.current;
+    if (activeData?.type === 'LibraryItem') return; // Library items handled in drag end
+
+    const overData = over.data.current;
+
+    // Support dropping onto another item or a droppable container
+    const activeBlockId = activeData?.sortable?.containerId;
+    const overBlockId = overData?.sortable?.containerId || over.id;
+
+    if (!activeBlockId || !overBlockId || activeBlockId === overBlockId) return;
+
+    // We only execute reorder between blocks here to show immediate feedback if needed
+    // However, a simpler implementation is to just handle everything onDragEnd.
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveItem(null);
+    setActiveSortableId(null);
+
+    const { active, over } = event;
+    if (!over) return;
+
+    const isLibraryItem = active.data.current?.type === 'LibraryItem';
+
+    if (isLibraryItem) {
+      // Library -> Block
+      const targetBlockId = over.data.current?.sortable?.containerId || over.id;
+      if (typeof targetBlockId === 'string' && currentWorkout?.blocks.some(b => b.id === targetBlockId)) {
+        addExerciseToBlock(active.data.current?.item as LunaLibraryItem, targetBlockId);
+      }
+    } else {
+      // Sortable -> Sortable / Block
+      const activeBlockId = active.data.current?.sortable?.containerId;
+      const overBlockId = over.data.current?.sortable?.containerId || over.id;
+
+      if (!activeBlockId || !overBlockId) return;
+
+      if (activeBlockId === overBlockId) {
+        // Reorder within same block
+        const block = currentWorkout?.blocks.find(b => b.id === activeBlockId);
+        if (!block) return;
+
+        const oldIndex = block.exercises.findIndex(e => e.id === active.id);
+        const newIndex = block.exercises.findIndex(e => e.id === over.id);
+
+        if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+          reorderExercises(activeBlockId, oldIndex, newIndex);
+        }
+      } else {
+        // Move between blocks
+        const sourceBlock = currentWorkout?.blocks.find(b => b.id === activeBlockId);
+        const targetBlock = currentWorkout?.blocks.find(b => b.id === overBlockId);
+        if (!sourceBlock || !targetBlock) return;
+
+        const oldIndex = sourceBlock.exercises.findIndex(e => e.id === active.id);
+        let newIndex = targetBlock.exercises.findIndex(e => e.id === over.id);
+
+        // If dropping onto empty container
+        if (newIndex === -1) {
+          newIndex = targetBlock.exercises.length;
+        }
+
+        if (oldIndex !== -1) {
+          moveExerciseBetweenBlocks(activeBlockId, overBlockId as string, oldIndex, newIndex);
+        }
+      }
+    }
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      {children}
+      <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+        {activeItem ? <LibraryItemDragOverlay item={activeItem} /> : null}
+      </DragOverlay>
+    </DndContext>
+  );
+};
 
 export const LunaDesignStudio: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,6 +263,7 @@ export const LunaDesignStudio: React.FC = () => {
 
   return (
     <LunaProvider>
+      <LunaDndWrapper>
     <div className={styles.lunaContainer}>
       <canvas ref={canvasRef} className={styles.pts}></canvas>
       <div className={styles.bgBase}></div>
@@ -303,6 +459,7 @@ export const LunaDesignStudio: React.FC = () => {
         ))}
       </div>
     </div>
+      </LunaDndWrapper>
     </LunaProvider>
   );
 };

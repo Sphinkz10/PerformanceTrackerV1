@@ -1310,3 +1310,20 @@
   .modules { display: none; }
   .statsPill { display: none; }
 }
+
+/* Drag overlay and drag styles */
+.dragOverlay {
+  cursor: grabbing !important;
+  opacity: 0.9;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,183,1,0.5);
+  transform: scale(1.02);
+}
+
+.isDragging {
+  opacity: 0.4;
+}
+
+.droppableActive {
+  background: rgba(255,183,1,0.05);
+  border-radius: 8px;
+}

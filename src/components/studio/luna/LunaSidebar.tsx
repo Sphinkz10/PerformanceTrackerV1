@@ -13,11 +13,47 @@ import {
   Dumbbell
 } from 'lucide-react';
 import styles from './luna.module.css';
-import { mapExerciseToLibraryItem } from './types';
+import { mapExerciseToLibraryItem, LunaLibraryItem } from './types';
 import { useExercises } from '@/hooks/useExercises';
+import { useDraggable } from '@dnd-kit/core';
 
 // Fallback icons if FolderLibrary isn't available in lucide-react version
 import { BookMarked } from 'lucide-react';
+
+const DraggableLibraryItem: React.FC<{ item: LunaLibraryItem }> = ({ item }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `lib-item-${item.id}`,
+    data: {
+      type: 'LibraryItem',
+      item,
+    },
+  });
+
+  let Icon = Dumbbell;
+  if (item.type === 'compound') Icon = Dumbbell;
+  if (item.type === 'isolation') Icon = Circle;
+  if (item.type === 'bodyweight') Icon = Activity;
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`${styles.libCard} ${isDragging ? styles.isDragging : ''}`}
+    >
+      <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
+        <Icon size={14} />
+      </div>
+      <div className={styles.libCardText}>
+        <div className={styles.libCardName}>{item.name}</div>
+        <div className={styles.libCardMeta}>{item.category}</div>
+      </div>
+      <button className={styles.libCardAdd} onClick={(e) => e.stopPropagation()}>
+        <Plus size={10} />
+      </button>
+    </div>
+  );
+};
 
 export const LunaSidebar: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'library' | 'layers'>('library');
@@ -98,27 +134,9 @@ export const LunaSidebar: React.FC = () => {
               A carregar biblioteca...
             </div>
           ) : (
-            libraryItems.map(item => {
-              let Icon = Dumbbell;
-              if (item.type === 'compound') Icon = Dumbbell;
-              if (item.type === 'isolation') Icon = Circle;
-              if (item.type === 'bodyweight') Icon = Activity;
-
-              return (
-                <div key={item.id} className={styles.libCard} draggable="true">
-                  <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
-                    <Icon size={14} />
-                  </div>
-                  <div className={styles.libCardText}>
-                    <div className={styles.libCardName}>{item.name}</div>
-                    <div className={styles.libCardMeta}>{item.category}</div>
-                  </div>
-                  <button className={styles.libCardAdd}>
-                    <Plus size={10} />
-                  </button>
-                </div>
-              );
-            })
+            libraryItems.map(item => (
+              <DraggableLibraryItem key={item.id} item={item} />
+            ))
           )}
         </div>
       </div>
