@@ -509,7 +509,7 @@ function AppContent() {
           {currentPage === "lab" && (
             <Lab onNavigate={(page) => setCurrentPage(page as Page)} />
           )}
-          {currentPage === "design-studio" && <Labs />}
+          {currentPage === "design-studio" && <LunaDesignStudio />}
           {currentPage === "report-builder" && <ReportBuilderV2 />}
           {currentPage === "data-os" && (
             <DataOS
