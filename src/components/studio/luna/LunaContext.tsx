@@ -16,6 +16,7 @@ interface LunaContextType extends LunaState {
   addExerciseToBlock: (exercise: LunaLibraryItem, targetBlockId: string) => void;
   reorderExercises: (blockId: string, oldIndex: number, newIndex: number) => void;
   moveExerciseBetweenBlocks: (sourceBlockId: string, targetBlockId: string, oldIndex: number, newIndex: number) => void;
+  updateExerciseConfig: (blockId: string, exerciseInstanceId: string, updates: Partial<LunaExerciseConfig>) => void;
 }
 
 const LunaContext = createContext<LunaContextType | undefined>(undefined);
@@ -66,6 +67,31 @@ export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+
+  const updateExerciseConfig = (blockId: string, exerciseInstanceId: string, updates: Partial<LunaExerciseConfig>) => {
+    setCurrentWorkout(prev => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        blocks: prev.blocks.map(block => {
+          if (block.id !== blockId) return block;
+
+          return {
+            ...block,
+            exercises: block.exercises.map(ex => {
+              if (ex.id !== exerciseInstanceId) return ex;
+              return {
+                ...ex,
+                config: { ...ex.config, ...updates }
+              };
+            })
+          };
+        })
+      };
+    });
+  };
+
   const moveExerciseBetweenBlocks = (sourceBlockId: string, targetBlockId: string, oldIndex: number, newIndex: number) => {
     setCurrentWorkout(prev => {
       if (!prev) return prev;
@@ -111,6 +137,7 @@ export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addExerciseToBlock,
         reorderExercises,
         moveExerciseBetweenBlocks,
+        updateExerciseConfig,
       }}
     >
       {children}

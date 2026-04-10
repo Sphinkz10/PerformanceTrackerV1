@@ -1,9 +1,43 @@
 import React, { useState } from 'react';
-import { Dumbbell, Activity, ChevronDown, ChevronRight } from 'lucide-react';
+import { Dumbbell, Activity, ChevronDown, ChevronRight, Info } from 'lucide-react';
 import styles from './luna.module.css';
+import { useLunaStore } from './LunaContext';
 
 export const LunaPropertiesPanel: React.FC = () => {
   const [analyzerOpen, setAnalyzerOpen] = useState(true);
+  const { currentWorkout, selectedElement, updateExerciseConfig } = useLunaStore();
+
+  let selectedEx = null;
+  let selectedBlockId = null;
+
+  if (currentWorkout && selectedElement) {
+    for (const block of currentWorkout.blocks) {
+      const ex = block.exercises.find((e) => e.id === selectedElement);
+      if (ex) {
+        selectedEx = ex;
+        selectedBlockId = block.id;
+        break;
+      }
+    }
+  }
+
+  const handleChange = (field: string, value: any) => {
+    if (selectedEx && selectedBlockId) {
+      updateExerciseConfig(selectedBlockId, selectedEx.id, { [field]: value });
+    }
+  };
+
+  if (!selectedEx) {
+    return (
+      <aside className={`${styles.rightCol} ${styles.glass}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 24 }}>
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: 16, borderRadius: '50%', marginBottom: 16 }}>
+          <Info size={24} color="var(--muted)" />
+        </div>
+        <div style={{ color: 'var(--white)', fontWeight: 500, fontSize: '0.9rem', marginBottom: 8 }}>Nenhum exercício selecionado</div>
+        <div style={{ color: 'var(--muted-hi)', fontSize: '0.8rem', maxWidth: 200 }}>Selecione um exercício no workspace para configurar as suas propriedades.</div>
+      </aside>
+    );
+  }
 
   return (
     <aside className={`${styles.rightCol} ${styles.glass}`}>
@@ -13,7 +47,7 @@ export const LunaPropertiesPanel: React.FC = () => {
         </div>
         <div className={styles.propsHeaderText}>
           <div className={styles.propsHeaderTitle}>Propriedades &middot; Exercício</div>
-          <div className={styles.propsHeaderName}>Bench Press</div>
+          <div className={styles.propsHeaderName}>{selectedEx.name}</div>
         </div>
       </div>
 
@@ -22,38 +56,35 @@ export const LunaPropertiesPanel: React.FC = () => {
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label className={styles.fieldLabel}>Séries</label>
-            <input type="number" className={styles.fieldInput} defaultValue="5" />
+            <input type="number" className={styles.fieldInput} value={selectedEx.config.sets || ''} onChange={(e) => handleChange('sets', Number(e.target.value))} />
           </div>
           <div className={styles.field}>
             <label className={styles.fieldLabel}>Reps</label>
-            <input type="number" className={styles.fieldInput} defaultValue="5" />
+            <input type="text" className={styles.fieldInput} value={selectedEx.config.reps || ''} onChange={(e) => handleChange('reps', e.target.value)} />
           </div>
         </div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label className={styles.fieldLabel}>Carga (kg)</label>
-            <input type="number" className={styles.fieldInput} defaultValue="85" />
+            <input type="text" className={styles.fieldInput} value={selectedEx.config.weight || ''} onChange={(e) => handleChange('weight', e.target.value)} />
           </div>
           <div className={styles.field}>
             <label className={styles.fieldLabel}>RPE</label>
-            <input type="number" className={styles.fieldInput} defaultValue="8" min="1" max="10" />
+            <input type="number" className={styles.fieldInput} value={selectedEx.config.rpe || ''} min="1" max="10" onChange={(e) => handleChange('rpe', Number(e.target.value))} />
           </div>
         </div>
         <div className={styles.field}>
           <label className={styles.fieldLabel}>Descanso entre séries</label>
-          <input type="text" className={styles.fieldInput} defaultValue="2 min 30s" />
+          <input type="text" className={styles.fieldInput} value={selectedEx.config.rest || ''} onChange={(e) => handleChange('rest', e.target.value)} />
         </div>
 
         <div className={styles.sectionTitle}>Tempo &middot; Cadência</div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label className={styles.fieldLabel}>Tempo</label>
-            <input type="text" className={styles.fieldInput} defaultValue="3-1-1-0" />
+            <input type="text" className={styles.fieldInput} value={selectedEx.config.cadence || ''} onChange={(e) => handleChange('cadence', e.target.value)} />
           </div>
-          <div className={styles.field}>
-            <label className={styles.fieldLabel}>Ordem</label>
-            <input type="number" className={styles.fieldInput} defaultValue="1" />
-          </div>
+          {/* Ordem input left out as it is not part of config yet */}
         </div>
 
         <div className={styles.sectionTitle}>Notas Técnicas</div>
@@ -62,7 +93,8 @@ export const LunaPropertiesPanel: React.FC = () => {
             className={styles.fieldInput}
             rows={3}
             style={{ resize: 'vertical' }}
-            defaultValue="Foco no controlo excêntrico. Escápulas retraídas durante toda a execução."
+            value={selectedEx.config.notes || ''}
+            onChange={(e) => handleChange('notes', e.target.value)}
           />
         </div>
       </div>
