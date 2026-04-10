@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { LunaWorkout, LunaWorkspaceExercise, LunaLibraryItem, MOCK_WORKSPACE, LunaPlan, LunaLibraryWorkout, MOCK_PLAN } from './types';
+import { LunaWorkout, LunaWorkspaceExercise, LunaLibraryItem, MOCK_WORKSPACE, LunaPlan, LunaLibraryWorkout, MOCK_PLAN, LunaClass, LunaClassSegment, LunaClassSegmentLibraryItem, MOCK_CLASS } from './types';
 
 export type LunaModule = 'Treinos' | 'Planos' | 'Aulas';
 
@@ -7,6 +7,7 @@ interface LunaState {
   activeModule: LunaModule;
   currentPlan: LunaPlan | null;
   currentWorkout: LunaWorkout | null;
+  currentClass: LunaClass | null;
   selectedElement: string | null; // ID of the selected element
   studioMode: 'edit' | 'preview';
 }
@@ -17,6 +18,11 @@ interface LunaContextType extends LunaState {
   setStudioMode: (mode: 'edit' | 'preview') => void;
   setActiveModule: (module: LunaModule) => void;
   setCurrentPlan: (plan: LunaPlan | null) => void;
+  setCurrentClass: (lunaClass: LunaClass | null) => void;
+
+  // Class DND Actions
+  addClassSegment: (segment: LunaClassSegmentLibraryItem) => void;
+  reorderClassSegments: (oldIndex: number, newIndex: number) => void;
 
   // Plan DND Actions
   addWorkoutToDay: (workout: LunaLibraryWorkout, targetDayId: string) => void;
@@ -27,10 +33,7 @@ interface LunaContextType extends LunaState {
   addExerciseToBlock: (exercise: LunaLibraryItem, targetBlockId: string) => void;
   reorderExercises: (blockId: string, oldIndex: number, newIndex: number) => void;
   moveExerciseBetweenBlocks: (sourceBlockId: string, targetBlockId: string, oldIndex: number, newIndex: number) => void;
-  updateExerciseConfig,
-      addWorkoutToDay,
-      reorderWorkoutsInDay,
-      moveWorkoutBetweenDays: (blockId: string, exerciseInstanceId: string, updates: Partial<LunaExerciseConfig>) => void;
+  updateExerciseConfig: (blockId: string, exerciseInstanceId: string, updates: Partial<LunaExerciseConfig>) => void;
 }
 
 const LunaContext = createContext<LunaContextType | undefined>(undefined);
@@ -38,11 +41,35 @@ const LunaContext = createContext<LunaContextType | undefined>(undefined);
 export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentWorkout, setCurrentWorkout] = useState<LunaWorkout | null>(MOCK_WORKSPACE);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [activeModule,
-      currentPlan,
-      studioMode, setStudioMode] = useState<'edit' | 'preview'>('edit');
+  const [currentClass, setCurrentClass] = useState<LunaClass | null>(MOCK_CLASS);
+  const [studioMode, setStudioMode] = useState<'edit' | 'preview'>('edit');
   const [activeModule, setActiveModule] = useState<LunaModule>('Treinos');
   const [currentPlan, setCurrentPlan] = useState<LunaPlan | null>(MOCK_PLAN);
+
+  const addClassSegment = (segment: LunaClassSegmentLibraryItem) => {
+    setCurrentClass(prev => {
+      if (!prev) return prev;
+      const newSegment: LunaClassSegment = {
+        instanceId: `c-seg-inst-${Date.now()}`,
+        libraryId: segment.id,
+        name: segment.name,
+        duration: segment.duration,
+        type: segment.type,
+        color: segment.color
+      };
+      return { ...prev, segments: [...prev.segments, newSegment] };
+    });
+  };
+
+  const reorderClassSegments = (oldIndex: number, newIndex: number) => {
+    setCurrentClass(prev => {
+      if (!prev) return prev;
+      const newSegments = Array.from(prev.segments);
+      const [movedItem] = newSegments.splice(oldIndex, 1);
+      newSegments.splice(newIndex, 0, movedItem);
+      return { ...prev, segments: newSegments };
+    });
+  };
 
   const addExerciseToBlock = (exercise: LunaLibraryItem, targetBlockId: string) => {
     setCurrentWorkout(prev => {
@@ -218,16 +245,22 @@ export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         currentWorkout,
         setCurrentWorkout,
+        currentClass,
+        setCurrentClass,
         selectedElement,
         setSelectedElement,
         studioMode,
+        activeModule,
         setActiveModule,
-      setCurrentPlan,
-      setStudioMode,
+        currentPlan,
+        setCurrentPlan,
+        setStudioMode,
         addExerciseToBlock,
         reorderExercises,
         moveExerciseBetweenBlocks,
         updateExerciseConfig,
+        addClassSegment,
+        reorderClassSegments,
       }}
     >
       {children}

@@ -51,7 +51,7 @@ const LibraryItemDragOverlay: React.FC<{ item: LunaLibraryItem }> = ({ item }) =
 };
 
 const LunaDndWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentWorkout, addExerciseToBlock, reorderExercises, moveExerciseBetweenBlocks } = useLunaStore();
+  const { currentWorkout, addExerciseToBlock, reorderExercises, moveExerciseBetweenBlocks, addWorkoutToDay, reorderWorkoutsInDay, moveWorkoutBetweenDays, addClassSegment, reorderClassSegments, currentClass } = useLunaStore();
   const [activeItem, setActiveItem] = useState<LunaLibraryItem | null>(null);
   const [activeSortableId, setActiveSortableId] = useState<string | null>(null);
 
@@ -166,6 +166,7 @@ const LunaDndWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 export const LunaDesignStudio: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { activeModule } = useLunaStore();
 
   // Modals state
   const [isCalcOpen, setIsCalcOpen] = useState(false);
@@ -276,7 +277,13 @@ export const LunaDesignStudio: React.FC = () => {
 
         <div className={styles.body}>
           <LunaSidebar />
-          <LunaWorkspace onConfigClick={(id) => setIsConfigOpen(true)} />
+          {activeModule === 'Aulas' ? (
+            <LunaClassesCanvas />
+          ) : activeModule === 'Planos' ? (
+            <LunaPlansCanvas onConfigClick={(id) => setIsConfigOpen(true)} />
+          ) : (
+            <LunaWorkspace onConfigClick={(id) => setIsConfigOpen(true)} />
+          )}
           <LunaPropertiesPanel />
         </div>
       </div>
