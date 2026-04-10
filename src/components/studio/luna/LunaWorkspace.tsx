@@ -29,7 +29,7 @@ const renderBlockIcon = (type: LunaBlock['type']) => {
   }
 };
 
-const SortableExercise: React.FC<{ ex: LunaWorkspaceExercise; idx: number; onConfigClick: (id: string) => void }> = ({ ex, idx, onConfigClick }) => {
+const SortableExercise: React.FC<{ ex: LunaWorkspaceExercise; idx: number; onConfigClick: (id: string) => void; isSelected: boolean; onClick: () => void }> = ({ ex, idx, onConfigClick, isSelected, onClick }) => {
   const {
     attributes,
     listeners,
@@ -54,7 +54,8 @@ const SortableExercise: React.FC<{ ex: LunaWorkspaceExercise; idx: number; onCon
     <div
       ref={setNodeRef}
       style={style}
-      className={`${styles.exItem} ${isDragging ? styles.isDragging : ''}`}
+      className={`${styles.exItem} ${isDragging ? styles.isDragging : ''} ${isSelected ? styles.selected : ''}`}
+      onClick={onClick}
     >
       <div className={styles.exHandle} {...attributes} {...listeners}>
         <GripVertical size={10} />
@@ -92,6 +93,7 @@ const SortableExercise: React.FC<{ ex: LunaWorkspaceExercise; idx: number; onCon
 };
 
 const DroppableBlock: React.FC<{ block: LunaBlock; onConfigClick: (id: string) => void }> = ({ block, onConfigClick }) => {
+  const { selectedElement, setSelectedElement } = useLunaStore();
   const { setNodeRef, isOver } = useDroppable({
     id: block.id,
     data: {
@@ -132,7 +134,7 @@ const DroppableBlock: React.FC<{ block: LunaBlock; onConfigClick: (id: string) =
           strategy={verticalListSortingStrategy}
         >
           {block.exercises.map((ex, idx) => (
-            <SortableExercise key={ex.id} ex={ex} idx={idx} onConfigClick={onConfigClick} />
+            <SortableExercise key={ex.id} ex={ex} idx={idx} onConfigClick={onConfigClick} isSelected={selectedElement === ex.id} onClick={() => setSelectedElement(ex.id)} />
           ))}
         </SortableContext>
         <button className={styles.addExBtn}>
