@@ -1327,3 +1327,150 @@
   background: rgba(255,183,1,0.05);
   border-radius: 8px;
 }
+
+/* Plans Module Canvas */
+.plansCanvas {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.plansHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.plansHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--luna-text);
+  margin: 0;
+}
+
+.plansMeta {
+  display: flex;
+  gap: 1rem;
+}
+
+.planMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--luna-text-muted);
+  background: var(--luna-surface-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+}
+
+.plansTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.planWeek {
+  background: var(--luna-surface);
+  border: 1px solid var(--luna-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.planWeekHeader {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--luna-text);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.planWeekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1rem;
+}
+
+.planDayBlock {
+  background: var(--luna-surface-secondary);
+  border: 1px dashed var(--luna-border);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.planDayHeader {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--luna-text-muted);
+  text-align: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--luna-border);
+  margin: 0;
+}
+
+.planDayDropzone {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100px;
+  transition: all 0.2s;
+}
+
+.planDayDropzone.dragOver {
+  background: rgba(14, 165, 233, 0.05); /* sky-500 */
+}
+
+.emptyDayPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--luna-text-muted);
+  font-size: 0.75rem;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.planWorkoutItem {
+  display: flex;
+  align-items: center;
+  background: var(--luna-surface);
+  border: 1px solid var(--luna-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--luna-text);
+}
+
+.planWorkoutInfo {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planWorkoutInfo h4 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.dragHandle {
+  cursor: grab;
+  color: var(--luna-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dragHandle:active {
+  cursor: grabbing;
+}

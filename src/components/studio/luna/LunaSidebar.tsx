@@ -55,6 +55,31 @@ const DraggableLibraryItem: React.FC<{ item: LunaLibraryItem }> = ({ item }) => 
   );
 };
 
+
+const LibraryWorkoutItem = ({ item }: { item: LunaLibraryWorkout }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `lib-w-${item.id}`,
+    data: { type: 'library-workout', item }
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`${styles.libraryItem} ${isDragging ? styles.dragging : ''}`}
+    >
+      <div className={styles.libraryItemIcon}>
+        <Dumbbell size={16} />
+      </div>
+      <div className={styles.libraryItemInfo}>
+        <h4>{item.name}</h4>
+      </div>
+      <GripVertical size={16} className={styles.dragHandleIcon} />
+    </div>
+  );
+};
+
 export const LunaSidebar: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'library' | 'layers'>('library');
   const [activeFilter, setActiveFilter] = useState('Todos');

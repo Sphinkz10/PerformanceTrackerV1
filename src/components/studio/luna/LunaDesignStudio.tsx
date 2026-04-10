@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './luna.module.css';
 import { LunaTopBar } from './LunaTopBar';
+import { LunaPlansCanvas } from './LunaPlansCanvas';
 import { LunaSidebar } from './LunaSidebar';
 import { LunaWorkspace } from './LunaWorkspace';
 import { LunaPropertiesPanel } from './LunaPropertiesPanel';
@@ -98,54 +99,50 @@ const LunaDndWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveItem(null);
-    setActiveSortableId(null);
-
+    setActiveId(null);
     const { active, over } = event;
     if (!over) return;
 
-    const isLibraryItem = active.data.current?.type === 'LibraryItem';
+    // Plans Module DND
+    if (activeModule === 'Planos') {
+      const activeData = active.data.current;
+      const overData = over.data.current;
 
-    if (isLibraryItem) {
-      // Library -> Block
-      const targetBlockId = over.data.current?.sortable?.containerId || over.id;
-      if (typeof targetBlockId === 'string' && currentWorkout?.blocks.some(b => b.id === targetBlockId)) {
-        addExerciseToBlock(active.data.current?.item as LunaLibraryItem, targetBlockId);
+      if (activeData?.type === 'library-workout' && overData?.type === 'plan-day') {
+        addWorkoutToDay(activeData.item, over.id as string);
+        return;
       }
-    } else {
-      // Sortable -> Sortable / Block
-      const activeBlockId = active.data.current?.sortable?.containerId;
-      const overBlockId = over.data.current?.sortable?.containerId || over.id;
 
-      if (!activeBlockId || !overBlockId) return;
+      if (activeData?.type === 'library-workout' && overData?.type === 'plan-workout') {
+         // Dropped over a workout inside a day block -> get the parent day
+         // For simplicity right now, we find the day it belongs to... (mocked)
+      }
 
-      if (activeBlockId === overBlockId) {
-        // Reorder within same block
-        const block = currentWorkout?.blocks.find(b => b.id === activeBlockId);
-        if (!block) return;
+      if (activeData?.type === 'plan-workout' && overData?.type === 'plan-workout') {
+         // Reordering within same day or between days is complex without parent refs,
+         // keeping it basic for MVP.
+      }
+      return;
+    }
 
-        const oldIndex = block.exercises.findIndex(e => e.id === active.id);
-        const newIndex = block.exercises.findIndex(e => e.id === over.id);
+    // Workouts Module DND
+    if (active.id !== over.id) {
+      const activeType = active.data.current?.type;
 
-        if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
-          reorderExercises(activeBlockId, oldIndex, newIndex);
-        }
-      } else {
-        // Move between blocks
-        const sourceBlock = currentWorkout?.blocks.find(b => b.id === activeBlockId);
-        const targetBlock = currentWorkout?.blocks.find(b => b.id === overBlockId);
-        if (!sourceBlock || !targetBlock) return;
+      if (activeType === 'exercise') {
+        const activeContainer = active.data.current?.sortable?.containerId;
+        const overContainer = over.data.current?.sortable?.containerId || over.id;
 
-        const oldIndex = sourceBlock.exercises.findIndex(e => e.id === active.id);
-        let newIndex = targetBlock.exercises.findIndex(e => e.id === over.id);
-
-        // If dropping onto empty container
-        if (newIndex === -1) {
-          newIndex = targetBlock.exercises.length;
-        }
-
-        if (oldIndex !== -1) {
-          moveExerciseBetweenBlocks(activeBlockId, overBlockId as string, oldIndex, newIndex);
+        if (activeContainer && overContainer) {
+          if (activeContainer === overContainer) {
+            const oldIndex = active.data.current?.sortable.index;
+            const newIndex = over.data.current?.sortable?.index ?? 0;
+            reorderExercises(activeContainer, oldIndex, newIndex);
+          } else {
+            const oldIndex = active.data.current?.sortable.index;
+            const newIndex = over.data.current?.sortable?.index ?? 0;
+            moveExerciseBetweenBlocks(activeContainer, overContainer, oldIndex, newIndex);
+          }
         }
       }
     }

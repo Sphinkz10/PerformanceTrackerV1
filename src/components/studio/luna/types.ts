@@ -148,3 +148,72 @@ export const mapExerciseToLibraryItem = (exercise: Exercise): LunaLibraryItem =>
     color,
   };
 };
+
+
+// ==========================================
+// PHASE 3.1: PLANS MODULE TYPES
+// ==========================================
+
+export interface LunaLibraryWorkout {
+  id: string;
+  name: string;
+  description?: string;
+  duration?: number;
+  tags?: string[];
+  type: 'workout';
+}
+
+export interface LunaPlanWorkout {
+  instanceId: string; // Unique ID for this instance in the plan
+  workoutId: string;  // Reference to LibraryWorkout
+  name: string;
+}
+
+export interface LunaPlanDay {
+  id: string; // e.g., 'week1-day1'
+  dayNumber: number; // 1-7
+  name: string; // e.g., 'Segunda', 'Terça'
+  workouts: LunaPlanWorkout[];
+}
+
+export interface LunaPlanWeek {
+  id: string; // e.g., 'week1'
+  weekNumber: number;
+  days: LunaPlanDay[];
+}
+
+export interface LunaPlan {
+  id: string;
+  name: string;
+  durationWeeks: number;
+  weeks: LunaPlanWeek[];
+}
+
+export const MOCK_LIBRARY_WORKOUTS: LunaLibraryWorkout[] = [
+  { id: 'lib-w-1', name: 'Força Máxima A', type: 'workout' },
+  { id: 'lib-w-2', name: 'Força Máxima B', type: 'workout' },
+  { id: 'lib-w-3', name: 'Hipertrofia Upper', type: 'workout' },
+  { id: 'lib-w-4', name: 'Hipertrofia Lower', type: 'workout' },
+  { id: 'lib-w-5', name: 'Recuperação Ativa', type: 'workout' },
+];
+
+export const MOCK_PLAN: LunaPlan = {
+  id: 'plan-1',
+  name: 'Plano Base Hipertrofia',
+  durationWeeks: 4,
+  weeks: [
+    {
+      id: 'week-1',
+      weekNumber: 1,
+      days: [
+        { id: 'w1-d1', dayNumber: 1, name: 'Segunda', workouts: [] },
+        { id: 'w1-d2', dayNumber: 2, name: 'Terça', workouts: [] },
+        { id: 'w1-d3', dayNumber: 3, name: 'Quarta', workouts: [] },
+        { id: 'w1-d4', dayNumber: 4, name: 'Quinta', workouts: [] },
+        { id: 'w1-d5', dayNumber: 5, name: 'Sexta', workouts: [] },
+        { id: 'w1-d6', dayNumber: 6, name: 'Sábado', workouts: [] },
+        { id: 'w1-d7', dayNumber: 7, name: 'Domingo', workouts: [] },
+      ]
+    }
+  ]
+};
