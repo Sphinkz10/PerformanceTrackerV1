@@ -1474,3 +1474,174 @@
 .dragHandle:active {
   cursor: grabbing;
 }
+
+/* ===== MODALS (ADDED FOR EXERCISE BUILDER AND OTHERS) ===== */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 48, 71, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modalBackdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(8, 55, 82, 0.8);
+  border: 1px solid rgba(142, 202, 230, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalBackdrop.open .modal {
+  transform: translateY(0);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(142, 202, 230, 0.1);
+}
+
+.modalHeader h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: var(--muted-hi);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modalClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+
+.modalBody {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(142, 202, 230, 0.1);
+  background: rgba(2, 48, 71, 0.4);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btnPrimary {
+  background: var(--teal);
+  color: var(--white);
+  border: 1px solid transparent;
+}
+
+.btnPrimary:hover {
+  background: #1c88a1;
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background: transparent;
+  color: var(--muted-hi);
+  border: 1px solid rgba(142, 202, 230, 0.3);
+}
+
+.btnSecondary:hover {
+  background: rgba(142, 202, 230, 0.1);
+  color: var(--white);
+}
+
+/* Modal form specifics */
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-hi);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  background: rgba(2, 48, 71, 0.6);
+  border: 1px solid rgba(142, 202, 230, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--white);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: var(--teal);
+  background: rgba(2, 48, 71, 0.8);
+}
+
+.formSelect option {
+  background: var(--navy);
+  color: var(--white);
+}
