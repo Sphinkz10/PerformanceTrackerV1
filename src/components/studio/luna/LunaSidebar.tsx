@@ -13,7 +13,8 @@ import {
   Dumbbell
 } from 'lucide-react';
 import styles from './luna.module.css';
-import { MOCK_LIBRARY } from './types';
+import { mapExerciseToLibraryItem } from './types';
+import { useExercises } from '@/hooks/useExercises';
 
 // Fallback icons if FolderLibrary isn't available in lucide-react version
 import { BookMarked } from 'lucide-react';
@@ -21,6 +22,9 @@ import { BookMarked } from 'lucide-react';
 export const LunaSidebar: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'library' | 'layers'>('library');
   const [activeFilter, setActiveFilter] = useState('Todos');
+
+  const { exercises, loading } = useExercises();
+  const libraryItems = (exercises || []).map(mapExerciseToLibraryItem);
 
   // Example state for expanded layers
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({
@@ -89,27 +93,33 @@ export const LunaSidebar: React.FC = () => {
         </div>
 
         <div className={styles.libGrid}>
-          {MOCK_LIBRARY.map(item => {
-            let Icon = Dumbbell;
-            if (item.type === 'compound') Icon = Dumbbell;
-            if (item.type === 'isolation') Icon = Circle;
-            if (item.type === 'bodyweight') Icon = Activity;
+          {loading ? (
+            <div style={{ color: 'var(--muted-hi)', fontSize: '0.8rem', padding: '1rem', textAlign: 'center' }}>
+              A carregar biblioteca...
+            </div>
+          ) : (
+            libraryItems.map(item => {
+              let Icon = Dumbbell;
+              if (item.type === 'compound') Icon = Dumbbell;
+              if (item.type === 'isolation') Icon = Circle;
+              if (item.type === 'bodyweight') Icon = Activity;
 
-            return (
-              <div key={item.id} className={styles.libCard} draggable="true">
-                <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
-                  <Icon size={14} />
+              return (
+                <div key={item.id} className={styles.libCard} draggable="true">
+                  <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
+                    <Icon size={14} />
+                  </div>
+                  <div className={styles.libCardText}>
+                    <div className={styles.libCardName}>{item.name}</div>
+                    <div className={styles.libCardMeta}>{item.category}</div>
+                  </div>
+                  <button className={styles.libCardAdd}>
+                    <Plus size={10} />
+                  </button>
                 </div>
-                <div className={styles.libCardText}>
-                  <div className={styles.libCardName}>{item.name}</div>
-                  <div className={styles.libCardMeta}>{item.category}</div>
-                </div>
-                <button className={styles.libCardAdd}>
-                  <Plus size={10} />
-                </button>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 

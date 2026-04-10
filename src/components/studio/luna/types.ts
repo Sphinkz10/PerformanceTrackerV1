@@ -118,3 +118,33 @@ export const MOCK_WORKSPACE: LunaWorkout = {
     }
   ]
 };
+
+// Adapter to map backend Exercise to LunaLibraryItem
+import { Exercise } from '@/hooks/useExercises';
+
+export const mapExerciseToLibraryItem = (exercise: Exercise): LunaLibraryItem => {
+  // Infer type and color based on category/muscle group tags or predefined logic
+  // This is a simple approximation; can be enhanced as needed
+
+  let type = 'compound';
+  let color: 'teal' | 'gold' | 'orange' = 'teal';
+
+  const tagsStr = (exercise.tags || []).join(' ').toLowerCase();
+  const catStr = (exercise.category || '').toLowerCase();
+
+  if (tagsStr.includes('isolation') || catStr.includes('isolation')) {
+    type = 'isolation';
+    color = 'gold';
+  } else if (tagsStr.includes('bodyweight') || catStr.includes('bodyweight') || exercise.equipment?.includes('bodyweight')) {
+    type = 'bodyweight';
+    color = 'orange';
+  }
+
+  return {
+    id: exercise.id,
+    name: exercise.name,
+    category: exercise.category || 'Sem categoria',
+    type,
+    color,
+  };
+};

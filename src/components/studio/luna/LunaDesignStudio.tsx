@@ -5,6 +5,7 @@ import { LunaSidebar } from './LunaSidebar';
 import { LunaWorkspace } from './LunaWorkspace';
 import { LunaPropertiesPanel } from './LunaPropertiesPanel';
 import { Calculator, X, Plus, Dumbbell, SlidersHorizontal } from 'lucide-react';
+import { LunaProvider } from './LunaContext';
 
 interface Toast {
   id: number;
@@ -106,6 +107,7 @@ export const LunaDesignStudio: React.FC = () => {
   }, []);
 
   return (
+    <LunaProvider>
     <div className={styles.lunaContainer}>
       <canvas ref={canvasRef} className={styles.pts}></canvas>
       <div className={styles.bgBase}></div>
@@ -301,5 +303,6 @@ export const LunaDesignStudio: React.FC = () => {
         ))}
       </div>
     </div>
+    </LunaProvider>
   );
 };
