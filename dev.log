@@ -1,0 +1,12 @@
+
+> performance-tracker-v1@0.1.0 dev
+> vite
+
+Port 3000 is in use, trying another one...
+
+  VITE v6.4.1  ready in 456 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: use --host to expose
+12:31:10 AM [vite] (client) ✨ new dependencies optimized: motion/react, sonner, pino, framer-motion, swr, @supabase/supabase-js, date-fns, date-fns/locale
+12:31:10 AM [vite] (client) ✨ optimized dependencies changed. reloading
