@@ -124,3 +124,29 @@ export const calculateMuscleDistribution = (workout: LunaWorkout | null): { name
 
   return distribution;
 };
+
+import { Workout } from '@/hooks/useWorkouts';
+
+export const mapLunaWorkoutToPayload = (workout: LunaWorkout | null): Partial<Workout> => {
+  if (!workout) return {};
+
+  return {
+    title: workout.title || 'Untitled Workout',
+    description: workout.description || '',
+    blocks: workout.blocks.map(block => ({
+      id: block.id,
+      name: block.name,
+      type: block.type,
+      exercises: block.exercises.map(ex => ({
+        id: ex.id,
+        libraryId: ex.libraryId,
+        name: ex.name,
+        sets: ex.config?.sets || 0,
+        reps: ex.config?.reps || '',
+        weight: ex.config?.weight || '',
+        rest: ex.config?.rest || '',
+        notes: ex.config?.notes || ''
+      }))
+    })) as any // Casting since the exact structure of blocks in Workout type might vary or be JSON
+  };
+};

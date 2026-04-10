@@ -13,14 +13,19 @@ import {
   Edit3,
   Eye,
   SlidersHorizontal,
-  Save
+  Save,
+  Loader2
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useLunaStore } from './LunaContext';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { mapLunaWorkoutToPayload } from './lunaUtils';
 import styles from './luna.module.css';
 
 interface LunaTopBarProps {
   onCalcClick: () => void;
   onDistClick: () => void;
-  onSaveClick: () => void;
+  onSaveClick?: () => void; // Optional if we want to override default behavior
 }
 
 const MODULES = ['Exercícios', 'Treinos', 'Planos', 'Aulas', 'IA'];
@@ -28,6 +33,34 @@ const MODULES = ['Exercícios', 'Treinos', 'Planos', 'Aulas', 'IA'];
 export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick, onSaveClick }) => {
   const [activeModule, setActiveModule] = useState('Treinos');
   const [activeMode, setActiveMode] = useState<'Edit' | 'Preview'>('Edit');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { currentWorkout } = useLunaStore();
+  const { createWorkout } = useWorkouts();
+
+  const handleSave = async () => {
+    if (onSaveClick) {
+      onSaveClick();
+      return;
+    }
+
+    if (!currentWorkout) {
+      toast.error('Nenhum treino selecionado para guardar.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const payload = mapLunaWorkoutToPayload(currentWorkout);
+      await createWorkout(payload);
+      toast.success('Treino guardado com sucesso!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao guardar treino.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <header className={`${styles.topbar} ${styles.glass}`}>
@@ -110,9 +143,13 @@ export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick
         <button className={styles.btnIcon} onClick={onDistClick} title="Ver Distribuição">
           <SlidersHorizontal size={16} />
         </button>
-        <button className={styles.btnSave} onClick={onSaveClick}>
-          <Save size={13} />
-          Salvar
+        <button
+          className={`${styles.btnSave} ${isSaving ? styles.saving : ''}`}
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {isSaving ? 'A Guardar...' : 'Salvar'}
         </button>
       </div>
     </header>
