@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLuna } from './LunaContext';
 import {
   ArrowLeft,
   Activity,
@@ -26,8 +27,14 @@ interface LunaTopBarProps {
 const MODULES = ['Exercícios', 'Treinos', 'Planos', 'Aulas', 'IA'];
 
 export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick, onSaveClick }) => {
-  const [activeModule, setActiveModule] = useState('Treinos');
-  const [activeMode, setActiveMode] = useState<'Edit' | 'Preview'>('Edit');
+  const handleSave = () => {
+    if (activeModule === 'Planos') {
+      alert(`Saving plan: ${currentPlan?.name}`);
+      return;
+    }
+    onSaveClick();
+  };
+  const { studioMode, setStudioMode, activeModule, setActiveModule, currentPlan } = useLuna();
 
   return (
     <header className={`${styles.topbar} ${styles.glass}`}>
@@ -60,7 +67,7 @@ export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick
               <button
                 key={modName}
                 className={`${styles.moduleBtn} ${activeModule === modName ? styles.active : ''}`}
-                onClick={() => setActiveModule(modName)}
+                onClick={() => setActiveModule(modName as any)}
               >
                 <Icon size={13} />
                 {modName}
@@ -110,7 +117,7 @@ export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick
         <button className={styles.btnIcon} onClick={onDistClick} title="Ver Distribuição">
           <SlidersHorizontal size={16} />
         </button>
-        <button className={styles.btnSave} onClick={onSaveClick}>
+        <button className={styles.btnSave} onClick={handleSave}>
           <Save size={13} />
           Salvar
         </button>
