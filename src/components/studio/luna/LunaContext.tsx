@@ -9,9 +9,14 @@ interface LunaState {
   currentWorkout: LunaWorkout | null;
   selectedElement: string | null; // ID of the selected element
   studioMode: 'edit' | 'preview';
+  isExerciseBuilderOpen: boolean;
+  localExercises: LunaLibraryItem[];
 }
 
 interface LunaContextType extends LunaState {
+  openExerciseBuilder: () => void;
+  closeExerciseBuilder: () => void;
+  addNewExerciseToLibrary: (exercise: LunaLibraryItem) => void;
   setCurrentWorkout: (workout: LunaWorkout | null) => void;
   setSelectedElement: (id: string | null) => void;
   setStudioMode: (mode: 'edit' | 'preview') => void;
@@ -43,6 +48,15 @@ export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       studioMode, setStudioMode] = useState<'edit' | 'preview'>('edit');
   const [activeModule, setActiveModule] = useState<LunaModule>('Treinos');
   const [currentPlan, setCurrentPlan] = useState<LunaPlan | null>(MOCK_PLAN);
+  const [isExerciseBuilderOpen, setIsExerciseBuilderOpen] = useState(false);
+  const [localExercises, setLocalExercises] = useState<LunaLibraryItem[]>([]);
+
+  const openExerciseBuilder = () => setIsExerciseBuilderOpen(true);
+  const closeExerciseBuilder = () => setIsExerciseBuilderOpen(false);
+
+  const addNewExerciseToLibrary = (exercise: LunaLibraryItem) => {
+    setLocalExercises(prev => [...prev, exercise]);
+  };
 
   const addExerciseToBlock = (exercise: LunaLibraryItem, targetBlockId: string) => {
     setCurrentWorkout(prev => {
@@ -221,9 +235,16 @@ export const LunaProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedElement,
         setSelectedElement,
         studioMode,
+        activeModule,
+        currentPlan,
         setActiveModule,
-      setCurrentPlan,
-      setStudioMode,
+        setCurrentPlan,
+        setStudioMode,
+        isExerciseBuilderOpen,
+        localExercises,
+        openExerciseBuilder,
+        closeExerciseBuilder,
+        addNewExerciseToLibrary,
         addExerciseToBlock,
         reorderExercises,
         moveExerciseBetweenBlocks,

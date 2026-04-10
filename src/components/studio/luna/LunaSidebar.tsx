@@ -16,6 +16,7 @@ import styles from './luna.module.css';
 import { mapExerciseToLibraryItem, LunaLibraryItem } from './types';
 import { useExercises } from '@/hooks/useExercises';
 import { useDraggable } from '@dnd-kit/core';
+import { useLunaStore } from './LunaContext';
 
 // Fallback icons if FolderLibrary isn't available in lucide-react version
 import { BookMarked } from 'lucide-react';
@@ -81,11 +82,13 @@ const LibraryWorkoutItem = ({ item }: { item: LunaLibraryWorkout }) => {
 };
 
 export const LunaSidebar: React.FC = () => {
+  const { activeModule, openExerciseBuilder, localExercises } = useLunaStore();
   const [activeTab, setActiveTab] = useState<'library' | 'layers'>('library');
   const [activeFilter, setActiveFilter] = useState('Todos');
 
   const { exercises, loading } = useExercises();
-  const libraryItems = (exercises || []).map(mapExerciseToLibraryItem);
+  const apiLibraryItems = (exercises || []).map(mapExerciseToLibraryItem);
+  const libraryItems = [...apiLibraryItems, ...localExercises];
 
   // Example state for expanded layers
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({
@@ -125,16 +128,28 @@ export const LunaSidebar: React.FC = () => {
           <input type="text" placeholder="Pesquisar biblioteca..." />
         </div>
 
-        <div className={styles.filterRow}>
-          {['Todos', 'Exerc.', 'Treinos', 'Planos'].map(filter => (
+        <div className={styles.filterRow} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {['Todos', 'Exerc.', 'Treinos', 'Planos'].map(filter => (
+              <button
+                key={filter}
+                className={`${styles.filterPill} ${activeFilter === filter ? styles.active : ''}`}
+                onClick={() => setActiveFilter(filter)}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+          {activeModule === 'Treinos' && (
             <button
-              key={filter}
-              className={`${styles.filterPill} ${activeFilter === filter ? styles.active : ''}`}
-              onClick={() => setActiveFilter(filter)}
+              className={styles.filterPill}
+              style={{ background: 'var(--teal)', color: 'var(--white)', border: 'none' }}
+              onClick={openExerciseBuilder}
+              title="Novo Exercício"
             >
-              {filter}
+              <Plus size={12} />
             </button>
-          ))}
+          )}
         </div>
 
         <div className={styles.viewToggle}>

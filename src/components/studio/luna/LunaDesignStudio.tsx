@@ -7,6 +7,7 @@ import { LunaWorkspace } from './LunaWorkspace';
 import { LunaPropertiesPanel } from './LunaPropertiesPanel';
 import { Calculator, X, Plus, Dumbbell, SlidersHorizontal, Activity, Circle } from 'lucide-react';
 import { LunaProvider, useLunaStore } from './LunaContext';
+import { LunaExerciseBuilderModal } from './LunaExerciseBuilderModal';
 import {
   DndContext,
   DragOverlay,
@@ -267,6 +268,7 @@ export const LunaDesignStudio: React.FC = () => {
       <div className={styles.bgGrad}></div>
       <div className={styles.vignette}></div>
 
+      <LunaExerciseBuilderModal />
       <div className={styles.app}>
         <LunaTopBar
           onCalcClick={() => setIsCalcOpen(true)}
