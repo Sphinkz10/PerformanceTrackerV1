@@ -4,7 +4,7 @@ import { useLunaForms } from './LunaFormsContext';
 import { Search, Plus } from 'lucide-react';
 
 export const FormsSidebar: React.FC = () => {
-  const { forms, setForms, currentFormId, setCurrentFormId, isLeftDrawerOpen, closeDrawers } = useLunaForms();
+  const { forms, setForms, currentFormId, setCurrentFormId, isLeftDrawerOpen, closeDrawers, setPreviewFormId } = useLunaForms();
   const [activeTab, setActiveTab] = useState<'all' | 'templates' | 'responses'>('all');
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number } | null>(null);
@@ -58,7 +58,9 @@ export const FormsSidebar: React.FC = () => {
     const form = forms.find(f => f.id === id);
     if (!form) return;
 
-    if (action === 'edit') {
+    if (action === 'preview') {
+      setPreviewFormId(id);
+    } else if (action === 'edit') {
       setCurrentFormId(id);
       if (window.innerWidth < 1024) closeDrawers();
     } else if (action === 'duplicate') {
@@ -131,6 +133,7 @@ export const FormsSidebar: React.FC = () => {
           className={styles.contextMenu}
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
+          <div className={styles.contextMenuItem} onClick={() => handleAction('preview', contextMenu.id)}>▶️ Prever</div>
           <div className={styles.contextMenuItem} onClick={() => handleAction('edit', contextMenu.id)}>✏️ Editar</div>
           <div className={styles.contextMenuItem} onClick={() => handleAction('duplicate', contextMenu.id)}>📑 Duplicar</div>
           <div className={styles.contextMenuItem} onClick={() => handleAction('togglePublish', contextMenu.id)}>

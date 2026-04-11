@@ -5,6 +5,7 @@ import { FormsSidebar } from './FormsSidebar';
 import { FormsWorkspace } from './FormsWorkspace';
 import { FormsPropertiesPanel } from './FormsPropertiesPanel';
 import { DrawerBackdrop } from './DrawerBackdrop';
+import { LunaSubmissionModal } from './LunaSubmissionModal';
 import { Menu, Settings, Save, RefreshCw } from 'lucide-react';
 
 const Particles: React.FC = () => {
@@ -140,6 +141,8 @@ const Topbar: React.FC = () => {
 };
 
 export const LunaFormsAppContent: React.FC = () => {
+  const { previewFormId } = useLunaForms();
+
   return (
     <div className={styles.container}>
       <Particles />
@@ -158,6 +161,8 @@ export const LunaFormsAppContent: React.FC = () => {
       </div>
 
       <DrawerBackdrop />
+
+      {previewFormId && <LunaSubmissionModal formId={previewFormId} />}
     </div>
   );
 };
