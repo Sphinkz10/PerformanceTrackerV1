@@ -217,3 +217,48 @@ export const MOCK_PLAN: LunaPlan = {
     }
   ]
 };
+
+// ==========================================
+// PHASE 3.2: CLASSES MODULE TYPES
+// ==========================================
+
+export interface LunaClassSegmentLibraryItem {
+  id: string;
+  name: string;
+  duration: number; // in minutes
+  type: 'warmup' | 'strength' | 'gymnastics' | 'wod' | 'mobility';
+  color: 'teal' | 'gold' | 'orange';
+}
+
+export interface LunaClassSegment {
+  instanceId: string;
+  libraryId: string;
+  name: string;
+  duration: number;
+  type: string;
+  color: string;
+}
+
+export interface LunaClass {
+  id: string;
+  title: string;
+  description: string;
+  segments: LunaClassSegment[];
+}
+
+export const MOCK_CLASS_SEGMENTS: LunaClassSegmentLibraryItem[] = [
+  { id: 'c-seg-1', name: 'Aquecimento', duration: 10, type: 'warmup', color: 'teal' },
+  { id: 'c-seg-2', name: 'Força', duration: 20, type: 'strength', color: 'gold' },
+  { id: 'c-seg-3', name: 'Ginástica', duration: 15, type: 'gymnastics', color: 'orange' },
+  { id: 'c-seg-4', name: 'WOD', duration: 15, type: 'wod', color: 'teal' },
+  { id: 'c-seg-5', name: 'Mobilidade', duration: 5, type: 'mobility', color: 'teal' },
+];
+
+export const MOCK_CLASS: LunaClass = {
+  id: 'class-1',
+  title: 'WOD - Sexta Feira',
+  description: 'Sexta feira pesada focada em LPO e Condicionamento',
+  segments: [
+    { instanceId: 'seg-inst-1', libraryId: 'c-seg-1', name: 'Aquecimento Geral', duration: 10, type: 'warmup', color: 'teal' }
+  ]
+};

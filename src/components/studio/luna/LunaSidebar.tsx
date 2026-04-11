@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Clock,
   FolderLibrary,
   Layers,
   Search,
@@ -13,13 +14,43 @@ import {
   Dumbbell
 } from 'lucide-react';
 import styles from './luna.module.css';
-import { mapExerciseToLibraryItem, LunaLibraryItem } from './types';
+import { mapExerciseToLibraryItem, LunaLibraryItem, MOCK_CLASS_SEGMENTS, LunaClassSegmentLibraryItem } from './types';
+import { useLunaStore } from './LunaContext';
 import { useExercises } from '@/hooks/useExercises';
 import { useDraggable } from '@dnd-kit/core';
-import { useLunaStore } from './LunaContext';
 
 // Fallback icons if FolderLibrary isn't available in lucide-react version
 import { BookMarked } from 'lucide-react';
+
+const DraggableClassSegment: React.FC<{ item: LunaClassSegmentLibraryItem }> = ({ item }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `c-seg-${item.id}`,
+    data: {
+      type: 'ClassSegmentLibraryItem',
+      item,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`${styles.libCard} ${isDragging ? styles.isDragging : ''}`}
+    >
+      <div className={`${styles.libCardIcon} ${styles[item.color]}`}>
+        <Clock size={14} />
+      </div>
+      <div className={styles.libCardText}>
+        <div className={styles.libCardName}>{item.name}</div>
+        <div className={styles.libCardMeta}>{item.duration} min &middot; {item.type}</div>
+      </div>
+      <button className={styles.libCardAdd} onClick={(e) => e.stopPropagation()}>
+        <Plus size={10} />
+      </button>
+    </div>
+  );
+};
 
 const DraggableLibraryItem: React.FC<{ item: LunaLibraryItem }> = ({ item }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -82,13 +113,12 @@ const LibraryWorkoutItem = ({ item }: { item: LunaLibraryWorkout }) => {
 };
 
 export const LunaSidebar: React.FC = () => {
-  const { activeModule, openExerciseBuilder, localExercises } = useLunaStore();
+  const { activeModule } = useLunaStore();
   const [activeTab, setActiveTab] = useState<'library' | 'layers'>('library');
   const [activeFilter, setActiveFilter] = useState('Todos');
 
   const { exercises, loading } = useExercises();
-  const apiLibraryItems = (exercises || []).map(mapExerciseToLibraryItem);
-  const libraryItems = [...apiLibraryItems, ...localExercises];
+  const libraryItems = (exercises || []).map(mapExerciseToLibraryItem);
 
   // Example state for expanded layers
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({
@@ -128,28 +158,16 @@ export const LunaSidebar: React.FC = () => {
           <input type="text" placeholder="Pesquisar biblioteca..." />
         </div>
 
-        <div className={styles.filterRow} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {['Todos', 'Exerc.', 'Treinos', 'Planos'].map(filter => (
-              <button
-                key={filter}
-                className={`${styles.filterPill} ${activeFilter === filter ? styles.active : ''}`}
-                onClick={() => setActiveFilter(filter)}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-          {activeModule === 'Treinos' && (
+        <div className={styles.filterRow}>
+          {['Todos', 'Exerc.', 'Treinos', 'Planos'].map(filter => (
             <button
-              className={styles.filterPill}
-              style={{ background: 'var(--teal)', color: 'var(--white)', border: 'none' }}
-              onClick={openExerciseBuilder}
-              title="Novo Exercício"
+              key={filter}
+              className={`${styles.filterPill} ${activeFilter === filter ? styles.active : ''}`}
+              onClick={() => setActiveFilter(filter)}
             >
-              <Plus size={12} />
+              {filter}
             </button>
-          )}
+          ))}
         </div>
 
         <div className={styles.viewToggle}>
@@ -174,9 +192,15 @@ export const LunaSidebar: React.FC = () => {
               A carregar biblioteca...
             </div>
           ) : (
-            libraryItems.map(item => (
-              <DraggableLibraryItem key={item.id} item={item} />
-            ))
+            activeModule === 'Aulas' ? (
+              MOCK_CLASS_SEGMENTS.map(item => (
+                <DraggableClassSegment key={item.id} item={item} />
+              ))
+            ) : (
+              libraryItems.map(item => (
+                <DraggableLibraryItem key={item.id} item={item} />
+              ))
+            )
           )}
         </div>
       </div>
