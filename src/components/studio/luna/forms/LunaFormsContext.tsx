@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/sortable';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { LunaForm } from './formsTypes';
 
@@ -15,6 +16,7 @@ interface LunaFormsContextType {
   toggleLeftDrawer: () => void;
   toggleRightDrawer: () => void;
   closeDrawers: () => void;
+  reorderFields: (activeId: number | string, overId: number | string) => void;
 }
 
 const initialForms: LunaForm[] = [
@@ -57,6 +59,25 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
     setIsRightDrawerOpen(false);
   };
 
+  const reorderFields = (activeId: number | string, overId: number | string) => {
+    if (activeId !== overId && currentFormId !== null) {
+      setForms((prevForms) => {
+        return prevForms.map((form) => {
+          if (form.id === currentFormId) {
+            const oldIndex = form.fields.findIndex((f) => f.id === activeId);
+            const newIndex = form.fields.findIndex((f) => f.id === overId);
+            return {
+              ...form,
+              fields: arrayMove(form.fields, oldIndex, newIndex),
+            };
+          }
+          return form;
+        });
+      });
+    }
+  };
+
+
   return (
     <LunaFormsContext.Provider value={{
       forms,
@@ -71,7 +92,8 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
       setIsRightDrawerOpen,
       toggleLeftDrawer,
       toggleRightDrawer,
-      closeDrawers
+      closeDrawers,
+      reorderFields
     }}>
       {children}
     </LunaFormsContext.Provider>
