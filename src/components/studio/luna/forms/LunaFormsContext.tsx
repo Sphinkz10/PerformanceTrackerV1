@@ -1,6 +1,8 @@
 import { arrayMove } from '@dnd-kit/sortable';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import useSWR, { mutate } from 'swr';
 import { LunaForm } from './formsTypes';
+import { fetcher, createLunaForm, updateLunaForm, deleteLunaForm } from './lunaFormsApi';
 
 interface LunaFormsContextType {
   forms: LunaForm[];
@@ -19,33 +21,35 @@ interface LunaFormsContextType {
   reorderFields: (activeId: number | string, overId: number | string) => void;
   previewFormId: number | null;
   setPreviewFormId: (id: number | null) => void;
+  isLoading: boolean;
+  error: any;
+  saveForm: (formId: number) => Promise<void>;
+  deleteFormContext: (formId: number) => Promise<void>;
+  createNewForm: () => Promise<void>;
 }
-
-const initialForms: LunaForm[] = [
-  {
-    id: 1,
-    title: 'Avaliação Inicial',
-    description: 'Exemplo',
-    fields: [
-      { id: 1, type: 'text', label: 'Nome', placeholder: '', required: true }
-    ],
-    logicRules: [],
-    submissions: [],
-    published: false,
-    isTemplate: false
-  }
-];
 
 const LunaFormsContext = createContext<LunaFormsContextType | undefined>(undefined);
 
 export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [forms, setForms] = useState<LunaForm[]>(initialForms);
-  const [currentFormId, setCurrentFormId] = useState<number | null>(1);
+  const { data: apiForms, error, isLoading } = useSWR<LunaForm[]>('/api/forms', fetcher);
+
+  const [forms, setForms] = useState<LunaForm[]>([]);
+  const [currentFormId, setCurrentFormId] = useState<number | null>(null);
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null);
 
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [previewFormId, setPreviewFormId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (apiForms) {
+      setForms(apiForms);
+      if (apiForms.length > 0 && currentFormId === null) {
+          setCurrentFormId(apiForms[0].id);
+      }
+    }
+  }, [apiForms]);
+
 
   const toggleLeftDrawer = () => {
     setIsRightDrawerOpen(false);
@@ -80,6 +84,58 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
+  const saveForm = async (formId: number) => {
+    const formToSave = forms.find(f => f.id === formId);
+    if (!formToSave) return;
+    try {
+      // Check if it's a new unsaved form locally (e.g., negative ID or whatever logic you prefer)
+      // Since our new forms might not exist on the backend yet, we can use create or update
+      // For simplicity, assuming if it doesn't exist on backend it will fail PUT, but we use updateLunaForm.
+      // If it's a completely new form, we could handle it via createNewForm.
+      await updateLunaForm(formId, formToSave);
+      await mutate('/api/forms');
+    } catch (e) {
+      console.error("Error saving form", e);
+      throw e;
+    }
+  };
+
+  const deleteFormContext = async (formId: number) => {
+    try {
+      await deleteLunaForm(formId);
+      const newForms = forms.filter(f => f.id !== formId);
+      setForms(newForms);
+      if (currentFormId === formId) {
+          setCurrentFormId(newForms[0]?.id || null);
+      }
+      await mutate('/api/forms');
+    } catch (e) {
+      console.error("Error deleting form", e);
+      throw e;
+    }
+  };
+
+  const createNewForm = async () => {
+    const newFormBase = {
+      title: 'Novo formulário',
+      description: '',
+      fields: [],
+      logicRules: [],
+      submissions: [],
+      published: false,
+      isTemplate: false
+    };
+    try {
+      const createdForm = await createLunaForm(newFormBase);
+      setForms(prev => [...prev, createdForm]);
+      setCurrentFormId(createdForm.id);
+      await mutate('/api/forms');
+    } catch (e) {
+       console.error("Error creating form", e);
+       throw e;
+    }
+  };
+
 
   return (
     <LunaFormsContext.Provider value={{
@@ -98,7 +154,12 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
       closeDrawers,
       reorderFields,
       previewFormId,
-      setPreviewFormId
+      setPreviewFormId,
+      isLoading,
+      error,
+      saveForm,
+      deleteFormContext,
+      createNewForm
     }}>
       {children}
     </LunaFormsContext.Provider>

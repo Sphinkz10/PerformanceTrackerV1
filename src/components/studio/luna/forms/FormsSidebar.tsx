@@ -4,7 +4,10 @@ import { useLunaForms } from './LunaFormsContext';
 import { Search, Plus } from 'lucide-react';
 
 export const FormsSidebar: React.FC = () => {
-  const { forms, setForms, currentFormId, setCurrentFormId, isLeftDrawerOpen, closeDrawers, setPreviewFormId } = useLunaForms();
+  const {
+    forms, setForms, currentFormId, setCurrentFormId, isLeftDrawerOpen, closeDrawers, setPreviewFormId,
+    isLoading, error, deleteFormContext, createNewForm
+  } = useLunaForms();
   const [activeTab, setActiveTab] = useState<'all' | 'templates' | 'responses'>('all');
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number } | null>(null);
@@ -20,21 +23,13 @@ export const FormsSidebar: React.FC = () => {
     filteredForms = filteredForms.filter(f => f.submissions && f.submissions.length > 0);
   }
 
-  const handleNewForm = () => {
-    const newId = forms.length ? Math.max(...forms.map(f => f.id)) + 1 : 1;
-    const newForm = {
-      id: newId,
-      title: 'Novo formulário',
-      description: '',
-      fields: [],
-      logicRules: [],
-      submissions: [],
-      published: false,
-      isTemplate: false
-    };
-    setForms([...forms, newForm]);
-    setCurrentFormId(newId);
-    if (window.innerWidth < 1024) closeDrawers();
+  const handleNewForm = async () => {
+    try {
+      await createNewForm();
+      if (window.innerWidth < 1024) closeDrawers();
+    } catch (e) {
+      alert("Erro ao criar formulário.");
+    }
   };
 
   const handleFormClick = (id: number) => {
@@ -71,15 +66,15 @@ export const FormsSidebar: React.FC = () => {
       setForms(forms.map(f => f.id === id ? { ...f, published: !f.published, isTemplate: !f.published ? false : f.isTemplate } : f));
     } else if (action === 'delete') {
       if (window.confirm('Apagar permanentemente?')) {
-        const newForms = forms.filter(f => f.id !== id);
-        setForms(newForms);
-        if (currentFormId === id) setCurrentFormId(newForms[0]?.id || null);
+        deleteFormContext(id).catch(() => alert("Erro ao apagar formulário."));
       }
     }
   };
 
   return (
     <aside className={`${styles.leftCol} ${styles.glass} ${isLeftDrawerOpen ? styles.open : ''}`}>
+      {isLoading && <div style={{ padding: '10px', color: 'var(--gold)', fontSize: '12px' }}>A carregar formulários...</div>}
+      {error && <div style={{ padding: '10px', color: 'red', fontSize: '12px' }}>Erro ao carregar dados.</div>}
       <div className={styles.statsRow}>
         <div className={styles.statCard}><div className={styles.num}>{statTotal}</div><div className={styles.label}>Formulários</div></div>
         <div className={styles.statCard}><div className={styles.num}>{statTemplates}</div><div className={styles.label}>Templates</div></div>
