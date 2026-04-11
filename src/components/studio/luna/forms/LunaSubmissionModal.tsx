@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import styles from './luna-forms.module.css';
 import { useLunaForms } from './LunaFormsContext';
+import { submitLunaFormResponse } from './lunaFormsApi';
 
 interface LunaSubmissionModalProps {
   formId: number;
@@ -13,6 +14,7 @@ export const LunaSubmissionModal: React.FC<LunaSubmissionModalProps> = ({ formId
 
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [errors, setErrors] = useState<Record<number, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!form) return null;
 
@@ -49,7 +51,7 @@ export const LunaSubmissionModal: React.FC<LunaSubmissionModalProps> = ({ formId
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: Record<number, string> = {};
 
     form.fields.forEach(field => {
@@ -74,34 +76,63 @@ export const LunaSubmissionModal: React.FC<LunaSubmissionModalProps> = ({ formId
       return;
     }
 
-    const transformedAnswers = form.fields.map(field => {
-      let finalValue = answers[field.id] || '';
-      if (field.transform && field.transform.type !== 'none' && finalValue) {
-        finalValue = transformValue(finalValue, field.transform.type, field.transform.multiplier);
-      }
-      return {
-        fieldId: field.id,
-        value: finalValue
-      };
-    });
-
-    const newSubmission = {
-      date: new Date().toISOString(),
-      answers: transformedAnswers
-    };
-
-    setForms(prev => prev.map(f => {
-      if (f.id === formId) {
+    setIsSubmitting(true);
+    try {
+      const transformedAnswers = form.fields.map(field => {
+        let finalValue = answers[field.id] || '';
+        if (field.transform && field.transform.type !== 'none' && finalValue) {
+          finalValue = transformValue(finalValue, field.transform.type, field.transform.multiplier);
+        }
         return {
-          ...f,
-          submissions: [...(f.submissions || []), newSubmission]
+          fieldId: field.id,
+          value: finalValue
         };
-      }
-      return f;
-    }));
+      });
 
-    alert('Respostas submetidas com sucesso!');
-    handleClose();
+      await submitLunaFormResponse(formId, transformedAnswers);
+
+      const toast = document.createElement('div');
+      toast.className = styles.toast;
+      toast.innerText = 'Respostas submetidas com sucesso!';
+      toast.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999;
+        background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 1px solid rgba(255,183,1,0.3); color: var(--gold); padding: 12px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500) }, 2500);
+
+      // Optionally refresh the data via SWR by manually calling mutate,
+      // but since context holds local state, we can update local submissions
+      // or simply rely on standard refresh. Updating local for immediate feedback:
+      const newSubmission = {
+        date: new Date().toISOString(),
+        answers: transformedAnswers
+      };
+
+      setForms(prev => prev.map(f => {
+        if (f.id === formId) {
+          return {
+            ...f,
+            submissions: [...(f.submissions || []), newSubmission]
+          };
+        }
+        return f;
+      }));
+
+      handleClose();
+    } catch (e) {
+      const toast = document.createElement('div');
+      toast.className = styles.toast;
+      toast.innerText = 'Erro ao submeter respostas.';
+      toast.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999;
+        background: #B91C1C; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500) }, 2500);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -222,11 +253,11 @@ export const LunaSubmissionModal: React.FC<LunaSubmissionModalProps> = ({ formId
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancel} onClick={handleClose}>
+          <button className={styles.btnCancel} onClick={handleClose} disabled={isSubmitting}>
             Cancelar
           </button>
-          <button className={styles.btnSubmit} onClick={handleSubmit}>
-            <Save size={18} /> Submeter
+          <button className={styles.btnSubmit} onClick={handleSubmit} disabled={isSubmitting} style={{ opacity: isSubmitting ? 0.7 : 1 }}>
+            <Save size={18} /> {isSubmitting ? 'A submeter...' : 'Submeter'}
           </button>
         </div>
       </div>

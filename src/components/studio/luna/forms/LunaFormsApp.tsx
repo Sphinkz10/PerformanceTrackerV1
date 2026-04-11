@@ -91,19 +91,32 @@ const Particles: React.FC = () => {
 };
 
 const Topbar: React.FC = () => {
-  const { toggleLeftDrawer, toggleRightDrawer, forms, currentFormId } = useLunaForms();
+  const { toggleLeftDrawer, toggleRightDrawer, forms, currentFormId, saveForm } = useLunaForms();
 
-  const handleSave = () => {
-    // Basic toast imitation for now, the real save logic would persist state to backend
-    const toast = document.createElement('div');
-    toast.className = styles.toast;
-    toast.innerText = 'Guardado';
-    toast.style.cssText = `
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999;
-      background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 1px solid rgba(255,183,1,0.3); color: var(--gold); padding: 12px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.4);
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500) }, 2500);
+  const handleSave = async () => {
+    if (currentFormId === null) return;
+    try {
+      await saveForm(currentFormId);
+      const toast = document.createElement('div');
+      toast.className = styles.toast;
+      toast.innerText = 'Guardado com sucesso';
+      toast.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999;
+        background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 1px solid rgba(255,183,1,0.3); color: var(--gold); padding: 12px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500) }, 2500);
+    } catch (e) {
+      const toast = document.createElement('div');
+      toast.className = styles.toast;
+      toast.innerText = 'Erro ao guardar';
+      toast.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999;
+        background: #B91C1C; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500) }, 2500);
+    }
   };
 
   return (
