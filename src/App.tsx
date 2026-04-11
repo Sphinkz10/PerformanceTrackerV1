@@ -61,7 +61,7 @@ import { TodaySessionsModal } from "./components/modals/TodaySessionsModal";
 import { AlertsModal } from "./components/modals/AlertsModal";
 import { TestExecuteSession } from "./TestExecuteSession";
 import LunaDashboardPage from './pages/LunaDashboardPage';
-import { LoginV2 } from "./components/auth/LoginV2";
+
 import { LunaLogin } from "./components/luna-obsidian/auth/LunaLogin";
 import { I18nProvider } from "./contexts/I18nContext";
 
@@ -814,13 +814,6 @@ export default function App() {
   }
 
   // Check if we're on the new Login V2 prototype page
-  if (window.location.pathname === '/login-v2') {
-    return (
-      <I18nProvider>
-        <LoginV2 />
-      </I18nProvider>
-    );
-  }
 
   return (
     <AppProvider>
