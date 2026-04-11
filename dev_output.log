@@ -2,12 +2,29 @@
 > performance-tracker-v1@0.1.0 dev
 > vite
 
+Port 3000 is in use, trying another one...
 
-  VITE v6.4.1  ready in 465 ms
+  VITE v6.4.1  ready in 401 ms
 
-  ➜  Local:   http://localhost:3000/
+  ➜  Local:   http://localhost:3001/
   ➜  Network: use --host to expose
-12:38:20 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
-12:38:20 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
-12:39:29 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
-12:39:30 AM [vite] (client) page reload src/App.tsx.backup
+8:36:38 PM [vite] (client) Pre-transform error: Failed to resolve import "./components/layout/Header" from "src/App.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /app/src/App.tsx:45:23
+  108|  _c19 = AthleteApp;
+  109|  import { FeedbackWidget } from "./components/shared/FeedbackWidget";
+  110|  import { Header } from "./components/layout/Header";
+     |                          ^
+  111|  import { FAB } from "./components/layout/FAB";
+  112|  import { SearchModal } from "./components/modals/SearchModal";
+8:36:39 PM [vite] (client) Pre-transform error: Failed to resolve import "./components/modals/ExecuteSessionModal" from "src/TestExecuteSession.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /app/src/TestExecuteSession.tsx:4:36
+  23 |  import { motion } from "motion/react";
+  24 |  import { Play, ArrowLeft } from "lucide-react";
+  25 |  import { ExecuteSessionModal } from "./components/modals/ExecuteSessionModal";
+     |                                       ^
+  26 |  export function TestExecuteSession() {
+  27 |      _s();
+8:38:54 PM [vite] (client) page reload fix_env.js
+8:40:28 PM [vite] (client) hmr update /src/components/luna-obsidian/auth/LunaLogin.tsx, /src/index.css
