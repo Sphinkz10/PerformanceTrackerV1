@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLuna } from './LunaContext';
+import { useLunaStore as useLuna } from './LunaContext';
 import {
   ArrowLeft,
   Activity,
@@ -32,9 +32,13 @@ export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick
       alert(`Saving plan: ${currentPlan?.name}`);
       return;
     }
+    if (activeModule === 'Aulas') {
+      alert(`Saving class with ${currentClass?.segments.length || 0} segments`);
+      return;
+    }
     onSaveClick();
   };
-  const { studioMode, setStudioMode, activeModule, setActiveModule, currentPlan } = useLuna();
+  const { studioMode, setStudioMode, activeModule, setActiveModule, currentPlan, currentClass } = useLuna();
 
   return (
     <header className={`${styles.topbar} ${styles.glass}`}>
@@ -100,15 +104,15 @@ export const LunaTopBar: React.FC<LunaTopBarProps> = ({ onCalcClick, onDistClick
         </div>
         <div className={styles.modeToggle}>
           <button
-            className={`${styles.modeBtn} ${activeMode === 'Edit' ? styles.active : ''}`}
-            onClick={() => setActiveMode('Edit')}
+            className={`${styles.modeBtn} ${studioMode === 'edit' ? styles.active : ''}`}
+            onClick={() => setStudioMode('edit')}
           >
             <Edit3 size={11} />
             Edit
           </button>
           <button
-            className={`${styles.modeBtn} ${activeMode === 'Preview' ? styles.active : ''}`}
-            onClick={() => setActiveMode('Preview')}
+            className={`${styles.modeBtn} ${studioMode === 'preview' ? styles.active : ''}`}
+            onClick={() => setStudioMode('preview')}
           >
             <Eye size={11} />
             Preview
