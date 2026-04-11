@@ -17,6 +17,8 @@ interface LunaFormsContextType {
   toggleRightDrawer: () => void;
   closeDrawers: () => void;
   reorderFields: (activeId: number | string, overId: number | string) => void;
+  previewFormId: number | null;
+  setPreviewFormId: (id: number | null) => void;
 }
 
 const initialForms: LunaForm[] = [
@@ -43,6 +45,7 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
+  const [previewFormId, setPreviewFormId] = useState<number | null>(null);
 
   const toggleLeftDrawer = () => {
     setIsRightDrawerOpen(false);
@@ -93,7 +96,9 @@ export const LunaFormsProvider: React.FC<{ children: ReactNode }> = ({ children 
       toggleLeftDrawer,
       toggleRightDrawer,
       closeDrawers,
-      reorderFields
+      reorderFields,
+      previewFormId,
+      setPreviewFormId
     }}>
       {children}
     </LunaFormsContext.Provider>
