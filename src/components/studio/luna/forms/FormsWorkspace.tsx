@@ -3,6 +3,10 @@ import styles from './luna-forms.module.css';
 import { useLunaForms } from './LunaFormsContext';
 import { Plus, Copy, Trash2 } from 'lucide-react';
 import { LunaFormField } from './formsTypes';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableFieldCard } from './SortableFieldCard';
+
 
 const fieldTypes = [
   { value: 'text', label: 'Texto Curto' }, { value: 'textarea', label: 'Texto Longo' }, { value: 'number', label: 'Número' },
@@ -17,8 +21,26 @@ export const FormsWorkspace: React.FC = () => {
     forms, setForms,
     currentFormId,
     selectedFieldId, setSelectedFieldId,
-    toggleRightDrawer
+    toggleRightDrawer,
+    reorderFields
   } = useLunaForms();
+
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      reorderFields(active.id, over.id);
+    }
+  };
 
   const form = forms.find(f => f.id === currentFormId);
 
@@ -102,69 +124,28 @@ export const FormsWorkspace: React.FC = () => {
         </div>
       </div>
 
-      <div className={styles.fieldList}>
-        {form.fields.map(field => (
-          <div
-            key={field.id}
-            className={`${styles.fieldCard} ${selectedFieldId === field.id ? styles.selected : ''}`}
-            onClick={(e) => handleFieldClick(e, field.id)}
-          >
-            <div className={styles.fieldHeader}>
-              <div className={styles.dragHandle}>⋮⋮</div>
-              <input
-                type="text"
-                className={styles.fieldLabelInput}
-                value={field.label}
-                onChange={(e) => updateField(field.id, { label: e.target.value })}
-              />
-              <span className={styles.fieldTypeBadge}>
-                {fieldTypes.find(t => t.value === field.type)?.label || field.type}
-              </span>
-              <div className={styles.fieldActions}>
-                <button className={styles.fieldActionBtn} onClick={(e) => { e.stopPropagation(); duplicateField(field.id); }}>
-                  <Copy size={12} />
-                </button>
-                <button className={styles.fieldActionBtn} onClick={(e) => { e.stopPropagation(); deleteField(field.id); }}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            </div>
 
-            <div className={styles.fieldBody}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <label style={{ color: 'var(--white)', fontSize: '.8rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={field.required}
-                    onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                    style={{ marginRight: '6px' }}
-                  />
-                  Obrigatório
-                </label>
-                <input
-                  type="text"
-                  className={styles.propInput}
-                  style={{ flex: 1, padding: '6px 10px' }}
-                  placeholder="Placeholder"
-                  value={field.placeholder || ''}
-                  onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                />
-              </div>
-              {field.options !== undefined && (
-                <div style={{ marginTop: '12px' }}>
-                  <label style={{ color: 'var(--muted)', fontSize: '.7rem', display: 'block', marginBottom: '4px' }}>Opções (vírgula)</label>
-                  <input
-                    type="text"
-                    className={styles.propInput}
-                    value={(field.options || []).join(', ')}
-                    onChange={(e) => updateField(field.id, { options: e.target.value.split(',').map(s => s.trim()) })}
-                  />
-                </div>
-              )}
-            </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={form.fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+          <div className={styles.fieldList}>
+            {form.fields.map(field => (
+              <SortableFieldCard
+                key={field.id}
+                field={field}
+                isSelected={selectedFieldId === field.id}
+                onFieldClick={handleFieldClick}
+                updateField={updateField}
+                duplicateField={duplicateField}
+                deleteField={deleteField}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <button className={styles.addFieldBtn} onClick={handleAddField}>
         <Plus size={14} /> Adicionar Campo
