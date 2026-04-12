@@ -39,7 +39,7 @@ const FormSubmissionsHistory = lazy(() => import("./components/pages/FormSubmiss
 const CalendarPage = lazy(() => import("./components/pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
 const PrivacyPage = lazy(() => import("./components/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("./components/pages/TermsPage").then(m => ({ default: m.TermsPage })));
-const LoginPage = lazy(() => import("./components/auth/LoginPage").then(m => ({ default: m.LoginPage })));
+const LunaLogin = lazy(() => import("./components/auth/LunaLogin").then(m => ({ default: m.LunaLogin })));
 const RegisterPage = lazy(() => import("./components/auth/RegisterPage").then(m => ({ default: m.RegisterPage })));
 const AthleteApp = lazy(() => import("./components/athlete/AthleteApp").then(m => ({ default: m.AthleteApp })));
 import { FeedbackWidget } from "./components/shared/FeedbackWidget";
@@ -873,7 +873,7 @@ function AuthenticatedApp() {
     }
     return (
       <Suspense fallback={<FallbackLoader />}>
-        <LoginPage onRegisterClick={() => setShowRegister(true)} />
+        <LunaLogin onRegisterClick={() => setShowRegister(true)} />
       </Suspense>
     );
   }
@@ -895,7 +895,7 @@ function AuthenticatedApp() {
   // Fallback
   return (
     <Suspense fallback={<FallbackLoader />}>
-      <LoginPage onRegisterClick={() => setShowRegister(true)} />
+      <LunaLogin onRegisterClick={() => setShowRegister(true)} />
     </Suspense>
   );
 }
