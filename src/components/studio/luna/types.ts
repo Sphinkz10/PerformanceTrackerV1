@@ -1,0 +1,264 @@
+export interface LunaLibraryItem {
+  id: string;
+  name: string;
+  category: string;
+  type: string;
+  color: 'teal' | 'gold' | 'orange';
+}
+
+export interface LunaExerciseConfig {
+  sets: number;
+  reps: string;
+  weight?: string;
+  rpe?: number;
+  rest?: string;
+  notes?: string;
+  cadence?: string;
+}
+
+export interface LunaWorkspaceExercise {
+  id: string;
+  libraryId: string;
+  name: string;
+  config: LunaExerciseConfig;
+}
+
+export interface LunaBlock {
+  id: string;
+  name: string;
+  type: 'warmup' | 'main' | 'finisher';
+  duration: string;
+  meta: string;
+  exercises: LunaWorkspaceExercise[];
+}
+
+export interface LunaWorkout {
+  id: string;
+  title: string;
+  description: string;
+  blocks: LunaBlock[];
+}
+
+export const MOCK_LIBRARY: LunaLibraryItem[] = [
+  { id: 'lib-1', name: 'Bench Press', category: 'Peito · Compostos', type: 'compound', color: 'teal' },
+  { id: 'lib-2', name: 'Deadlift', category: 'Costas · Compostos', type: 'compound', color: 'teal' },
+  { id: 'lib-3', name: 'Squat (Back)', category: 'Pernas · Compostos', type: 'compound', color: 'gold' },
+  { id: 'lib-4', name: 'Pull-ups', category: 'Costas · Body', type: 'bodyweight', color: 'orange' },
+  { id: 'lib-5', name: 'Romanian DL', category: 'Posterior · Iso', type: 'isolation', color: 'teal' },
+  { id: 'lib-6', name: 'Plank Variations', category: 'Core · Iso', type: 'isolation', color: 'gold' },
+];
+
+export const MOCK_WORKSPACE: LunaWorkout = {
+  id: 'wk-1',
+  title: 'Força Avançada - Tronco Superior',
+  description: 'Treino focado em compostos pesados com volume moderado e intensidade alta',
+  blocks: [
+    {
+      id: 'blk-1',
+      name: 'Aquecimento',
+      type: 'warmup',
+      duration: '8 min',
+      meta: '2 exercícios · 8 min',
+      exercises: [
+        {
+          id: 'ex-1',
+          libraryId: 'lib-none-1',
+          name: 'Mobilidade Dinâmica',
+          config: { sets: 3, reps: 'rondas', rest: '5 min' }
+        },
+        {
+          id: 'ex-2',
+          libraryId: 'lib-none-2',
+          name: 'Activation x 3',
+          config: { sets: 3, reps: '10' }
+        }
+      ]
+    },
+    {
+      id: 'blk-2',
+      name: 'Bloco Principal',
+      type: 'main',
+      duration: '42 min',
+      meta: '3 exercícios · 42 min · Compostos pesados',
+      exercises: [
+        {
+          id: 'ex-3',
+          libraryId: 'lib-1',
+          name: 'Bench Press',
+          config: { sets: 5, reps: '5', weight: '85kg', rpe: 8 }
+        },
+        {
+          id: 'ex-4',
+          libraryId: 'lib-3',
+          name: 'Squat (Back)',
+          config: { sets: 4, reps: '6', weight: '110kg', rpe: 7 }
+        },
+        {
+          id: 'ex-5',
+          libraryId: 'lib-2',
+          name: 'Deadlift',
+          config: { sets: 3, reps: '5', weight: '140kg', rpe: 8 }
+        }
+      ]
+    },
+    {
+      id: 'blk-3',
+      name: 'Finisher',
+      type: 'finisher',
+      duration: '10 min',
+      meta: '1 exercício · 10 min',
+      exercises: [
+        {
+          id: 'ex-6',
+          libraryId: 'lib-6',
+          name: 'Plank Variations (Tabata)',
+          config: { sets: 8, reps: 'rondas', notes: '20s work · 10s rest' }
+        }
+      ]
+    }
+  ]
+};
+
+// Adapter to map backend Exercise to LunaLibraryItem
+import { Exercise } from '@/hooks/useExercises';
+
+export const mapExerciseToLibraryItem = (exercise: Exercise): LunaLibraryItem => {
+  // Infer type and color based on category/muscle group tags or predefined logic
+  // This is a simple approximation; can be enhanced as needed
+
+  let type = 'compound';
+  let color: 'teal' | 'gold' | 'orange' = 'teal';
+
+  const tagsStr = (exercise.tags || []).join(' ').toLowerCase();
+  const catStr = (exercise.category || '').toLowerCase();
+
+  if (tagsStr.includes('isolation') || catStr.includes('isolation')) {
+    type = 'isolation';
+    color = 'gold';
+  } else if (tagsStr.includes('bodyweight') || catStr.includes('bodyweight') || exercise.equipment?.includes('bodyweight')) {
+    type = 'bodyweight';
+    color = 'orange';
+  }
+
+  return {
+    id: exercise.id,
+    name: exercise.name,
+    category: exercise.category || 'Sem categoria',
+    type,
+    color,
+  };
+};
+
+
+// ==========================================
+// PHASE 3.1: PLANS MODULE TYPES
+// ==========================================
+
+export interface LunaLibraryWorkout {
+  id: string;
+  name: string;
+  description?: string;
+  duration?: number;
+  tags?: string[];
+  type: 'workout';
+}
+
+export interface LunaPlanWorkout {
+  instanceId: string; // Unique ID for this instance in the plan
+  workoutId: string;  // Reference to LibraryWorkout
+  name: string;
+}
+
+export interface LunaPlanDay {
+  id: string; // e.g., 'week1-day1'
+  dayNumber: number; // 1-7
+  name: string; // e.g., 'Segunda', 'Terça'
+  workouts: LunaPlanWorkout[];
+}
+
+export interface LunaPlanWeek {
+  id: string; // e.g., 'week1'
+  weekNumber: number;
+  days: LunaPlanDay[];
+}
+
+export interface LunaPlan {
+  id: string;
+  name: string;
+  durationWeeks: number;
+  weeks: LunaPlanWeek[];
+}
+
+export const MOCK_LIBRARY_WORKOUTS: LunaLibraryWorkout[] = [
+  { id: 'lib-w-1', name: 'Força Máxima A', type: 'workout' },
+  { id: 'lib-w-2', name: 'Força Máxima B', type: 'workout' },
+  { id: 'lib-w-3', name: 'Hipertrofia Upper', type: 'workout' },
+  { id: 'lib-w-4', name: 'Hipertrofia Lower', type: 'workout' },
+  { id: 'lib-w-5', name: 'Recuperação Ativa', type: 'workout' },
+];
+
+export const MOCK_PLAN: LunaPlan = {
+  id: 'plan-1',
+  name: 'Plano Base Hipertrofia',
+  durationWeeks: 4,
+  weeks: [
+    {
+      id: 'week-1',
+      weekNumber: 1,
+      days: [
+        { id: 'w1-d1', dayNumber: 1, name: 'Segunda', workouts: [] },
+        { id: 'w1-d2', dayNumber: 2, name: 'Terça', workouts: [] },
+        { id: 'w1-d3', dayNumber: 3, name: 'Quarta', workouts: [] },
+        { id: 'w1-d4', dayNumber: 4, name: 'Quinta', workouts: [] },
+        { id: 'w1-d5', dayNumber: 5, name: 'Sexta', workouts: [] },
+        { id: 'w1-d6', dayNumber: 6, name: 'Sábado', workouts: [] },
+        { id: 'w1-d7', dayNumber: 7, name: 'Domingo', workouts: [] },
+      ]
+    }
+  ]
+};
+
+// ==========================================
+// PHASE 3.2: CLASSES MODULE TYPES
+// ==========================================
+
+export interface LunaClassSegmentLibraryItem {
+  id: string;
+  name: string;
+  duration: number; // in minutes
+  type: 'warmup' | 'strength' | 'gymnastics' | 'wod' | 'mobility';
+  color: 'teal' | 'gold' | 'orange';
+}
+
+export interface LunaClassSegment {
+  instanceId: string;
+  libraryId: string;
+  name: string;
+  duration: number;
+  type: string;
+  color: string;
+}
+
+export interface LunaClass {
+  id: string;
+  title: string;
+  description: string;
+  segments: LunaClassSegment[];
+}
+
+export const MOCK_CLASS_SEGMENTS: LunaClassSegmentLibraryItem[] = [
+  { id: 'c-seg-1', name: 'Aquecimento', duration: 10, type: 'warmup', color: 'teal' },
+  { id: 'c-seg-2', name: 'Força', duration: 20, type: 'strength', color: 'gold' },
+  { id: 'c-seg-3', name: 'Ginástica', duration: 15, type: 'gymnastics', color: 'orange' },
+  { id: 'c-seg-4', name: 'WOD', duration: 15, type: 'wod', color: 'teal' },
+  { id: 'c-seg-5', name: 'Mobilidade', duration: 5, type: 'mobility', color: 'teal' },
+];
+
+export const MOCK_CLASS: LunaClass = {
+  id: 'class-1',
+  title: 'WOD - Sexta Feira',
+  description: 'Sexta feira pesada focada em LPO e Condicionamento',
+  segments: [
+    { instanceId: 'seg-inst-1', libraryId: 'c-seg-1', name: 'Aquecimento Geral', duration: 10, type: 'warmup', color: 'teal' }
+  ]
+};

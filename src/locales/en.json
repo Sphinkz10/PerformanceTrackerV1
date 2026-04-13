@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Performance Tracker",
+    "slogan": "Performance is not by chance, it's a science."
+  },
+  "login": {
+    "title": "Welcome.",
+    "subtitle": "Sign in to your {brandName} account.",
+    "email_label": "Email",
+    "email_placeholder": "manager@team.com",
+    "password_label": "Password",
+    "forgot_password": "Forgot password",
+    "cta_button": "SIGN IN",
+    "divider": "or connect with",
+    "no_account": "Don't have an account? Sign up."
+  },
+  "support": "Support"
+}

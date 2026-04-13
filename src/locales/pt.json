@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Performance Tracker",
+    "slogan": "A performance não é um acaso, é uma ciência."
+  },
+  "login": {
+    "title": "Bem-vindo.",
+    "subtitle": "Entra na tua conta {brandName}.",
+    "email_label": "Email",
+    "email_placeholder": "manager@equipa.com",
+    "password_label": "Palavra-passe",
+    "forgot_password": "Esqueci-me da senha",
+    "cta_button": "ENTRAR",
+    "divider": "ou liga-te através de",
+    "no_account": "Não tens conta? Regista-te."
+  },
+  "support": "Suporte"
+}
