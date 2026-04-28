@@ -28,6 +28,7 @@ const NewAthleteProfile = lazy(() => import("./components/athlete/NewAthleteProf
 const Phase5Summary = lazy(() => import("./components/pages/Phase5Summary").then(m => ({ default: m.Phase5Summary })));
 const Lab = lazy(() => import("./components/pages/Lab").then(m => ({ default: m.Lab })));
 const Labs = lazy(() => import("./components/studio/Labs").then(m => ({ default: m.Labs })));
+const StudioShell = lazy(() => import("./modules/studio/StudioShell").then(m => ({ default: m.StudioShell })));
 const ReportBuilderV2 = lazy(() => import("./components/pages/ReportBuilderV2").then(m => ({ default: m.ReportBuilderV2 })));
 const DataOS = lazy(() => import("./components/pages/DataOS").then(m => ({ default: m.DataOS })));
 const LiveCommand = lazy(() => import("./components/pages/LiveCommand").then(m => ({ default: m.LiveCommand })));
@@ -115,7 +116,7 @@ interface AthleteData {
   phone?: string;
 }
 
-type Page = "home" | "athletes" | "athlete-profile" | "calendar" | "lab" | "design-studio" | "report-builder" | "data-os" | "live-command" | "messages" | "form-center" | "automation-center" | "workspace-settings" | "form-submissions-history" | "privacy" | "terms";
+type Page = "home" | "athletes" | "athlete-profile" | "calendar" | "lab" | "design-studio" | "exercise-studio" | "report-builder" | "data-os" | "live-command" | "messages" | "form-center" | "automation-center" | "workspace-settings" | "form-submissions-history" | "privacy" | "terms";
 
 function AppContent() {
   // Generate demo data on first run
@@ -464,6 +465,18 @@ function AppContent() {
               <Activity className="h-5 w-5" />
               <span>Live Command</span>
             </motion.button>
+            <motion.button
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setCurrentPage("exercise-studio")}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm font-medium ${currentPage === "exercise-studio"
+                ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-md shadow-sky-500/20'
+                : 'text-slate-700 hover:bg-slate-50'
+                }`}
+            >
+              <Dumbbell className="h-5 w-5" />
+              <span>Exercise Studio</span>
+            </motion.button>
           </div>
         </div>
       </nav>
@@ -495,6 +508,7 @@ function AppContent() {
             <Lab onNavigate={(page) => setCurrentPage(page as Page)} />
           )}
           {currentPage === "design-studio" && <Labs />}
+          {currentPage === "exercise-studio" && <StudioShell onBack={() => setCurrentPage("home")} />}
           {currentPage === "report-builder" && <ReportBuilderV2 />}
           {currentPage === "data-os" && (
             <DataOS

@@ -9240,4 +9240,14 @@ html {
     transition:var(--transition);
   }
   .field-input:focus, .field-select:focus { border-color:var(--gold); border-left-color:var(--gold); box-shadow:0 0 0 3px rgba(255,183,1,0.1); }
+  
+  .block-card {
+    transition: all 0.2s ease;
+  }
+  .block-card:hover {
+    transform: scale(1.02);
+  }
+  .block-card:active {
+    transform: scale(0.98);
+  }
 }

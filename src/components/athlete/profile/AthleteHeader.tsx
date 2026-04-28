@@ -10,7 +10,7 @@ import {
   CheckCircle, AlertCircle, Clock, Edit, Share2, Trash2
 } from 'lucide-react';
 import type { Athlete } from '@/lib/mockData';
-import { AthleteScheduleModal } from '@/components/modals/ScheduleSessionModal';
+import { ScheduleSessionModal } from '@/components/modals/ScheduleSessionModal';
 import { toast } from 'sonner@2.0.3';
 
 interface AthleteHeaderProps {
@@ -265,11 +265,10 @@ export function AthleteHeader({ athlete, onBack }: AthleteHeaderProps) {
         </div>
       </div>
 
-      <AthleteScheduleModal
+      <ScheduleSessionModal
         isOpen={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
-        athleteId={(athlete as any).id}
-        athleteName={fullName}
+        onComplete={() => toast.success('Scheduled')}
       />
     </div>
   );
