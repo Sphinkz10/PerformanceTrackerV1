@@ -7,15 +7,17 @@ import {
   FileText, Flame, Star, Clock, Copy, Award, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ExerciseBuilderModal } from '@/components/modals/ExerciseBuilderModal';
 import { CreateWorkoutModal } from '@/components/modals/CreateWorkoutModal';
-import { CreatePlanModal } from '@/components/modals/CreatePlanModal';
-import { CreateClassModal } from '@/components/modals/CreateClassModal';
 import { DistributionPanel } from './distribution/DistributionPanel';
 import { ItemPreview } from './preview/ItemPreview';
 import { useCreateWorkout, useUpdateWorkout, useCreateExercise } from '@/hooks/use-api';
 import { toast } from 'sonner@2.0.3';
 import { useWorkspace, useUser } from '@/contexts/AppContext';
+
+// MOCK DELETED MODALS TEMPORARILY
+const ExerciseBuilderModal = ({ exercise, onUpdate }: any) => <div className="p-4 bg-white rounded-xl shadow"><h3>Exercise Builder Unavailable</h3><p>This module is being refactored to the new Architecture.</p></div>;
+const CreatePlanModal = ({ plan, onUpdate }: any) => <div className="p-4 bg-white rounded-xl shadow"><h3>Plan Builder Unavailable</h3><p>This module is being refactored to the new Architecture.</p></div>;
+const CreateClassModal = ({ classData, onUpdate }: any) => <div className="p-4 bg-white rounded-xl shadow"><h3>Class Builder Unavailable</h3><p>This module is being refactored to the new Architecture.</p></div>;
 
 type Module = 'exercises' | 'workouts' | 'plans' | 'classes' | 'library';
 type ViewMode = 'edit' | 'preview';
@@ -444,10 +446,10 @@ export function DesignStudio({ onBack }: DesignStudioProps) {
                 <CreateWorkoutModal workout={selectedItem} onUpdate={handleUpdate} />
               )}
               {activeModule === 'plans' && (
-                <PlanBuilder plan={selectedItem} onUpdate={handleUpdate} />
+                <CreatePlanModal plan={selectedItem} onUpdate={handleUpdate} />
               )}
               {activeModule === 'classes' && (
-                <ClassBuilder classData={selectedItem} onUpdate={handleUpdate} />
+                <CreateClassModal classData={selectedItem} onUpdate={handleUpdate} />
               )}
             </>
           )}
