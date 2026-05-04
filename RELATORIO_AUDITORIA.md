@@ -1,0 +1,897 @@
+# RELATÓRIO DE AUDITORIA COMPLETA DE CÓDIGO
+
+## 1. SUMÁRIO EXECUTIVO
+O Performance Tracker V1 (Luna OS) é uma aplicação monolítica (SPA) desenvolvida em React. O projeto efetua uma transição de UI ("Luna Override"), abandonando layouts clássicos em prol de uma interface altamente detalhada baseada em Tailwind CSS e Radix UI. Apresenta elevado débito técnico relativo à persistência de dados (mock APIs e falta de queries) e rotas (state-based routing), apesar da excelência visual.
+
+## 2. VISÃO GERAL DA APLICAÇÃO
+A arquitetura baseia-se em componentes e domínios de negócio (Calendar, DataOS, Forms, Design Studio) aninhados sob um root controller (`App.tsx`). O roteamento é feito localmente com estados, permitindo visualizações ricas mas limitando deep linking.
+
+## 3. STACK TECNOLÓGICA
+- **Linguagens:** TypeScript.
+- **Framework:** React 18, Vite.
+- **Data Fetching:** SWR.
+- **UI:** Tailwind CSS 4, Radix UI.
+- **Testes:** Vitest, Playwright.
+- **DB:** Tipos do Supabase definidos estaticamente.
+
+## 4. AUDITORIA PÁGINA A PÁGINA
+
+- **Nome da página e caminho/rota:** `App.tsx` - `src/App.tsx`
+  - **Descrição funcional completa:** Root router entrypoint, controla a Provider tree e o display de modais globais consoante as credenciais de Auth mock.
+  - **Componentes UI principais utilizados:** useState, useEffect, Toaster, toast, motion, Home, Users, Calendar, BarChart3,   Dumbbell, Database, FileText, Zap, Activity, Plus, logger, useDecisio...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useEffect, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `LunaDashboardPage.tsx` - `src/pages/LunaDashboardPage.tsx`
+  - **Descrição funcional completa:** Core container app. Em vez de usar React Router, utiliza o estado da sidebar para orquestrar os vários domínios num único layout.
+  - **Componentes UI principais utilizados:** useAnalyticsDashboard, useCalendarEvents, useDashboardAlerts, useDecisions...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useEffect.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `CalendarDemoPage.tsx` - `src/pages/CalendarDemoPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente CalendarDemoPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, Calendar as CalendarIcon,   Plus,   Download,   BarChart3,   Settings,   FileText,   Printer,   Zap,   Database,   FormInput,   Acti...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Dashboard.tsx` - `src/components/pages/Dashboard.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Dashboard.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, Users,    Calendar,    AlertCircle,   Clock,   PlayCircle,   Search,   Target,   Dumbbell,   ArrowRight,   TrendingUp,   FileText,   AlertTria...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Athletes.tsx` - `src/components/pages/Athletes.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Athletes.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, AnimatePresence, Search,   Users,   AlertCircle,   Send,   BarChart3,   Download,   MoreVertical,   X,   CheckCircle,   Clock, useAv...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** src/tests/e2e/athletes.spec.ts
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `NewAthleteProfile.tsx` - `src/components/athlete/NewAthleteProfile.tsx`
+  - **Descrição funcional completa:** Página principal para o componente NewAthleteProfile.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, useEffect, motion, ArrowLeft, Play, FileText, MoreVertical,   Activity, TrendingUp, Zap, Brain, Heart, History, Settings,   AlertCircle, use...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useEffect.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Phase5Summary.tsx` - `src/components/pages/Phase5Summary.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Phase5Summary.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** Componentes internos e HTML nativo
+  - **Estado e dados geridos:** Variáveis de estado local via nenhum state explicitly detetado.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Lab.tsx` - `src/components/pages/Lab.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Lab.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, Palette,   Radio,   Database,   BarChart3,   FileText,   Zap,   HardDrive,   ArrowRight,   TrendingUp,   Users,   Activity,   Target, StatCard...
+  - **Estado e dados geridos:** Variáveis de estado local via nenhum state explicitly detetado.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Labs.tsx` - `src/components/studio/Labs.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Labs.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, FlaskConical,   Activity,   Dna,   Zap,   Brain,   ArrowLeft,   Palette,, DesignStudio, BiomechanicsLab, GeneticLab, NeuroLab, Energ...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `StudioShell.tsx` - `src/modules/studio/StudioShell.tsx`
+  - **Descrição funcional completa:** Página principal para o componente StudioShell.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, lazy, Suspense, StudioNav...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `ReportBuilderV2.tsx` - `src/components/pages/ReportBuilderV2.tsx`
+  - **Descrição funcional completa:** Página principal para o componente ReportBuilderV2.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, AnimatePresence, Search,   Sparkles,   TrendingUp,   Users,   BarChart3,   Target,   Shield,   Zap,   Clock,   CheckCircle,   ArrowR...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `DataOS.tsx` - `src/components/pages/DataOS.tsx`
+  - **Descrição funcional completa:** Página principal para o componente DataOS.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, useEffect, DataOSProvider, VisualBuilder, QuantumForecastMain, motion, Database, Activity, Target, Plus, TrendingUp, Package, BookOpen, Zap,...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useEffect.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** src/tests/integration/dataos/metric-entry.test.tsx
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `LiveCommand.tsx` - `src/components/pages/LiveCommand.tsx`
+  - **Descrição funcional completa:** Página principal para o componente LiveCommand.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, Play, Calendar, Users, Activity, ArrowLeft, LiveCommandProvider, LiveSession...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `Messages.tsx` - `src/components/pages/Messages.tsx`
+  - **Descrição funcional completa:** Página principal para o componente Messages.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, useEffect, motion, AnimatePresence, Search,   Send,   Paperclip,   Smile,   MoreVertical,   Phone,   Video,   Check,   CheckCheck,   ArrowLe...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useEffect.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `FormCenter.tsx` - `src/components/pages/FormCenter.tsx`
+  - **Descrição funcional completa:** Página principal para o componente FormCenter.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, AnimatePresence, Plus,   Search,   Filter,   MoreVertical,   Copy,   Trash2,   Eye,   Edit,   Send,   BarChart3,   Settings,   Zap,   FileText...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `AutomationPage.tsx` - `src/components/pages/AutomationPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente AutomationPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, Zap,   Sparkles,   Package,   Activity,   BarChart3,   Settings,   Search,   Plus,   Command,   Bell, WorkflowsList, QuickAutomation...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `WorkspaceSettings.tsx` - `src/components/pages/WorkspaceSettings.tsx`
+  - **Descrição funcional completa:** Página principal para o componente WorkspaceSettings.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, Settings,   Users,   Database,   Zap,   Shield,   Globe,   DollarSign,   BarChart3,   Bell,   Trash2,   Plus,   Edit,   Crown,   Use...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `FormSubmissionsHistory.tsx` - `src/components/pages/FormSubmissionsHistory.tsx`
+  - **Descrição funcional completa:** Página principal para o componente FormSubmissionsHistory.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, motion, AnimatePresence, ArrowLeft,   FileText,   Calendar,   User,   Filter,   Search,   CheckCircle,   Clock,   Eye,   Download,   Chevron...
+  - **Estado e dados geridos:** Variáveis de estado local via useState.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `CalendarPage.tsx` - `src/components/pages/CalendarPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente CalendarPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** CalendarCore...
+  - **Estado e dados geridos:** Variáveis de estado local via nenhum state explicitly detetado.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `PrivacyPage.tsx` - `src/components/pages/PrivacyPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente PrivacyPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, Shield, ArrowLeft, Mail...
+  - **Estado e dados geridos:** Variáveis de estado local via nenhum state explicitly detetado.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `TermsPage.tsx` - `src/components/pages/TermsPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente TermsPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** motion, FileText, ArrowLeft...
+  - **Estado e dados geridos:** Variáveis de estado local via nenhum state explicitly detetado.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `LunaLogin.tsx` - `src/components/auth/LunaLogin.tsx`
+  - **Descrição funcional completa:** Página principal para o componente LunaLogin.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useApp, supabase...
+  - **Estado e dados geridos:** Variáveis de estado local via useEffect, useState, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `RegisterPage.tsx` - `src/components/auth/RegisterPage.tsx`
+  - **Descrição funcional completa:** Página principal para o componente RegisterPage.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, useApp...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+- **Nome da página e caminho/rota:** `AthleteApp.tsx` - `src/components/athlete/AthleteApp.tsx`
+  - **Descrição funcional completa:** Página principal para o componente AthleteApp.tsx, atuando como interface do seu domínio.
+  - **Componentes UI principais utilizados:** useState, Toaster, useApp, AthleteLayout, AthleteDashboard, NewAthleteProfile, AthleteCalendar, ReportPainModal, CancelWorkoutModal, RequestChangeModa...
+  - **Estado e dados geridos:** Variáveis de estado local via useState, useApp.
+  - **Interações do utilizador suportadas:** Cliques, montagem de modais e eventos de teclado mapeados.
+  - **Lógica de negócio associada:** Lógica frontend stateful baseada em condicionais.
+  - **Chamadas a APIs, endpoints e ligações:** SWR data fetching para a `LunaAPI`.
+  - **Testes que cobrem esta página:** Nenhum teste encontrado para esta página.
+  - **Observações adicionais:** A injeção de dependências é feita via context.
+
+## 5. MAPA DE LIGAÇÕES E NAVEGAÇÃO
+A aplicação contorna bibliotecas de rotas padrão, operando por variáveis de estado em `App.tsx`:
+1. Rota public (`/` ou sem auth): Apresenta o component `LunaLogin`. A partir daqui, botões permitem comutar estados para renderizar `RegisterPage` ou as `PrivacyPage`/`TermsPage`.
+2. Se autenticado e `isCoach == true`: O utilizador cai no `LunaDashboardPage`. Os botões da Sidebar apenas invocam `setCurrentPage("nome-do-painel")`. Sem URLs estritos, deep-linking fica comprometido.
+3. Se `window.location.pathname === '/test-execute'`: O render ignora a árvore normal e pinta um `TestExecuteSession`.
+
+## 6. AUDITORIA DA BASE DE DADOS
+
+- **Esquema completo:**
+  - **Tabela `workspaces`**: `id` (string), `name` (string), `type` ('gym' | 'team' | 'personal'), `created_at` (string), `updated_at` (string), `is_active` (boolean)
+  - **Tabela `users`**: `id` (string), `email` (string), `name` (string), `role` ('admin' | 'coach' | 'athlete'), `avatar_url` (string | null), `workspace_id` (string), `created_at` (string), `updated_at` (string), `is_active` (boolean)
+  - **Tabela `athletes`**: `id` (string), `workspace_id` (string), `user_id` (string | null), `name` (string), `email` (string | null), `phone` (string | null), `date_of_birth` (string | null), `sport` (string | null), `position` (string | null), `jersey_number` (string | null), `avatar_url` (string | null), `status` (string), `created_at` (string), `updated_at` (string), `is_active` (boolean)
+  - **Tabela `calendar_events`**: `id` (string), `workspace_id` (string), `title` (string), `description` (string | null), `event_type` (string), `start_time` (string), `end_time` (string), `location` (string | null), `created_by` (string), `created_at` (string), `updated_at` (string), `is_cancelled` (boolean)
+  - **Tabela `metrics`**: `id` (string), `workspace_id` (string), `name` (string), `description` (string | null), `unit` (string | null), `metric_type` (string), `data_type` (string), `category` (string | null), `is_active` (boolean), `created_at` (string), `updated_at` (string)
+  - **Tabela `metric_updates`**: `id` (string), `metric_id` (string), `athlete_id` (string), `value` (number), `recorded_at` (string), `notes` (string | null), `created_by` (string), `created_at` (string)
+  - **Tabela `sessions`**: `id` (string), `workspace_id` (string), `title` (string), `session_type` (string), `status` (string), `scheduled_at` (string | null), `started_at` (string | null), `completed_at` (string | null), `created_by` (string), `created_at` (string), `updated_at` (string)
+
+- **Relacionamentos e chaves estrangeiras:**
+  - Todos os recursos estão isolados sob `workspace_id` ligando a `workspaces.id`.
+  - Atletas referenciam `users.id` (através de `user_id`).
+  - `metric_updates` estabelece relação N:M referenciando `metric_id` e `athlete_id`.
+- **Queries complexas, views, stored procedures, triggers, funções:** Nenhuma procedure detetada. Todo o parsing de queries ocorre no frontend ou via simulações in-memory (Mock Luna API).
+- **Índices existentes e análise de performance:** Não aplicável (zero migrations .sql no repositório).
+- **Integridade dos dados e possíveis problemas:** Como as validações estão retidas no frontend e o backend não foi migrado, a integridade carece de validações hard-level na BD.
+- **Migrações e seeds:** Nenhuma migration `.sql` identificada.
+
+## 7. ANÁLISE DE UI/UX
+- **Padrões de design utilizados:** Utiliza uma arquitetura apelidada de "Luna Obsidian" orientada a Dark Mode e "Glassmorphism" (elementos translúcidos).
+- **Acessibilidade:** Forte. Uso extensivo do pacote Radix UI permite screen readers e tab navigations funcionarem sem constrangimentos.
+- **Responsividade:** Mobile first, contendo testes visuais Playwright desenhados especificamente para tamanhos de viewport móveis.
+- **Consistência visual:** Uso padronizado de tokens (`--gold`, `--teal`, `--sky`) providenciados pelo CSS Variables.
+- **Feedback ao utilizador:** Recurso ao Sonner (Toaster) para microinterações não obstrutivas.
+
+## 8. COBERTURA DE TESTES (LISTA EXAUSTIVA)
+
+- **Lista completa de TODOS os ficheiros de teste encontrados:**
+
+  - Ficheiro: `src/__tests__/example.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should pass if vitest is configured correctly"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/__tests__/hooks/use-calendar-metrics.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should calculate total events correctly"
+      - Testa se: "should calculate event counts by status"
+      - Testa se: "should calculate rates correctly"
+      - Testa se: "should group events by type"
+      - Testa se: "should filter by date range"
+      - Testa se: "should filter by types"
+      - Testa se: "should filter by statuses"
+      - Testa se: "should calculate average participants per event"
+      - Testa se: "should handle empty events array"
+      - Testa se: "should isolate by workspace"
+      - Testa se: "should count events by status"
+      - Testa se: "should work without workspace filter"
+      - Testa se: "should count events by type"
+      - Testa se: "should work without workspace filter"
+      - Testa se: "should count upcoming events within default 7 days"
+      - Testa se: "should count upcoming events within custom days"
+      - Testa se: "should exclude cancelled events"
+      - Testa se: "should count overdue pending/confirmed events"
+      - Testa se: "should not count completed or cancelled as overdue"
+      - Testa se: "should calculate completion trend correctly"
+      - Testa se: "should handle zero events"
+      - Testa se: "should recalculate when events change"
+      - Testa se: "should recalculate when filters change"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/components/shared/__tests__/AdaptiveCard.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render children"
+      - Testa se: "should render as div by default"
+      - Testa se: "should render as button when onClick is provided"
+      - Testa se: "should call onClick when clicked"
+      - Testa se: "should apply border by default"
+      - Testa se: "should not apply border when border is false"
+      - Testa se: "should apply shadow-sm by default"
+      - Testa se: "should apply correct shadow class"
+      - Testa se: "should apply no shadow"
+      - Testa se: "should apply correct padding class"
+      - Testa se: "should apply no padding"
+      - Testa se: "should apply custom className"
+      - Testa se: "should render with all props"
+      - Testa se: "should render without change"
+      - Testa se: "should apply correct color gradient"
+      - Testa se: "should apply positive change color"
+      - Testa se: "should apply negative change color"
+      - Testa se: "should be clickable when onClick provided"
+      - Testa se: "should render with all props"
+      - Testa se: "should render without badge"
+      - Testa se: "should call onClick when clicked"
+      - Testa se: "should apply correct color"
+      - Testa se: "should render with avatar"
+      - Testa se: "should render with icon instead of avatar"
+      - Testa se: "should render with badge"
+      - Testa se: "should render actions"
+      - Testa se: "should be clickable when onClick provided"
+      - Testa se: "should apply correct badge color"
+      - Testa se: "should render with all props"
+      - Testa se: "should render without description"
+      - Testa se: "should render without badge"
+      - Testa se: "should render without footer"
+      - Testa se: "should be clickable when onClick provided"
+      - Testa se: "should apply correct aspect ratio"
+      - Testa se: "should render image with correct alt text"
+      - Testa se: "should have responsive classes in ListCard"
+      - Testa se: "should have proper button role when clickable"
+      - Testa se: "should have alt text for images"
+      - Testa se: "should have alt text for MediaCard images"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/components/shared/__tests__/ContextualActions.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render all actions as inline buttons on desktop"
+      - Testa se: "should call onClick when button is clicked"
+      - Testa se: "should apply correct variant classes"
+      - Testa se: "should disable buttons when disabled prop is true"
+      - Testa se: "should hide actions when hidden prop is true"
+      - Testa se: "should render dropdown trigger on mobile"
+      - Testa se: "should open dropdown when trigger is clicked"
+      - Testa se: "should close dropdown when action is clicked"
+      - Testa se: "should close dropdown when clicking outside"
+      - Testa se: "should apply correct danger variant in dropdown"
+      - Testa se: "should render as dropdown when mobileThreshold is "
+      - Testa se: "should render as inline buttons when mobileThreshold is "
+      - Testa se: "should always show dropdown when threshold is "
+      - Testa se: "should align dropdown to the right by default"
+      - Testa se: "should align dropdown to the left when specified"
+      - Testa se: "should have proper ARIA attributes"
+      - Testa se: "should have disabled state on disabled buttons"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/components/shared/__tests__/ResponsiveModal.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should not render when isOpen is false"
+      - Testa se: "should render when isOpen is true"
+      - Testa se: "should display title when provided"
+      - Testa se: "should display subtitle when provided"
+      - Testa se: "should render footer when provided"
+      - Testa se: "should call onClose when close button is clicked"
+      - Testa se: "should call onClose when backdrop is clicked"
+      - Testa se: "should not call onClose when backdrop is clicked if closeOnBackdrop is false"
+      - Testa se: "should call onClose when Escape key is pressed"
+      - Testa se: "should not call onClose when Escape is pressed if closeOnEscape is false"
+      - Testa se: "should apply correct size class for sm"
+      - Testa se: "should apply correct size class for md"
+      - Testa se: "should apply correct size class for lg"
+      - Testa se: "should apply correct size class for xl"
+      - Testa se: "should apply correct size class for full"
+      - Testa se: "should render fullscreen style on mobile"
+      - Testa se: "should render bottomsheet style on mobile"
+      - Testa se: "should apply custom className"
+      - Testa se: "should show close button by default"
+      - Testa se: "should hide close button when showCloseButton is false"
+      - Testa se: "should render with title and message"
+      - Testa se: "should display custom button labels"
+      - Testa se: "should call onConfirm when confirm button is clicked"
+      - Testa se: "should call onClose when cancel button is clicked"
+      - Testa se: "should apply info variant styling"
+      - Testa se: "should apply warning variant styling"
+      - Testa se: "should apply danger variant styling"
+      - Testa se: "should show loading state"
+      - Testa se: "should disable buttons when loading"
+      - Testa se: "should trap focus inside modal"
+      - Testa se: "should have proper ARIA attributes"
+      - Testa se: "should prevent body scroll when modal is open"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/components/shared/__tests__/ResponsiveTabBar.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render all tabs"
+      - Testa se: "should call onChange when tab is clicked"
+      - Testa se: "should not call onChange when disabled tab is clicked"
+      - Testa se: "should highlight active tab"
+      - Testa se: "should display badge when provided"
+      - Testa se: "should display string badge"
+      - Testa se: "should render disabled tab with correct styling"
+      - Testa se: "should apply custom className"
+      - Testa se: "should render compact variant"
+      - Testa se: "should have smaller sizing classes"
+      - Testa se: "should render pill variant"
+      - Testa se: "should have pill container styling"
+      - Testa se: "should highlight active tab with white background"
+      - Testa se: "should render desktop version"
+      - Testa se: "should render mobile version"
+      - Testa se: "should render fixed bottom bar for mobile"
+      - Testa se: "should have proper button roles"
+      - Testa se: "should disable buttons correctly"
+      - Testa se: "should handle large number of tabs"
+      - Testa se: "should handle rapid clicks"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/lib/__tests__/responsive-utils.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should have correct breakpoint values"
+      - Testa se: "should return true for widths < 768px"
+      - Testa se: "should return false for widths >= 768px"
+      - Testa se: "should return true for widths between 768px and 1024px"
+      - Testa se: "should return false for widths outside tablet range"
+      - Testa se: "should return true for widths >= 1024px"
+      - Testa se: "should return false for widths < 1024px"
+      - Testa se: "should return "
+      - Testa se: "should return "
+      - Testa se: "should return "
+      - Testa se: "should return "
+      - Testa se: "should return "
+      - Testa se: "should correctly compare against breakpoints"
+      - Testa se: "should correctly compare against breakpoints"
+      - Testa se: "should return correct min-width media queries"
+      - Testa se: "should return correct max-width media queries"
+      - Testa se: "should detect touch support"
+      - Testa se: "should return false when no touch support"
+      - Testa se: "should combine mobile and desktop classes"
+      - Testa se: "should include tablet classes when provided"
+      - Testa se: "should handle empty strings"
+      - Testa se: "should return true when width > height"
+      - Testa se: "should return false when width <= height"
+      - Testa se: "should return true when width <= height"
+      - Testa se: "should return false when width > height"
+      - Testa se: "should return mobile value on mobile"
+      - Testa se: "should return tablet value on tablet"
+      - Testa se: "should return desktop value on desktop"
+      - Testa se: "should return default value when specific value is undefined"
+      - Testa se: "should return 1 column on mobile"
+      - Testa se: "should return 2 columns on tablet"
+      - Testa se: "should return 4 columns on desktop"
+      - Testa se: "should return "
+      - Testa se: "should return "
+      - Testa se: "should return "
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/accessibility/wcag-audit.spec.ts`
+    - Tipo: Acessibilidade
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should navigate through main navigation with keyboard"
+      - Testa se: "should activate buttons with Enter key"
+      - Testa se: "should close modal with Escape key"
+      - Testa se: "should trap focus within modal"
+      - Testa se: "should have proper ARIA landmarks"
+      - Testa se: "should have descriptive page titles"
+      - Testa se: "should have accessible form labels"
+      - Testa se: "should have alt text for images"
+      - Testa se: "should announce dynamic content changes"
+      - Testa se: "should meet WCAG AA contrast requirements"
+      - Testa se: "should be readable in high contrast mode"
+      - Testa se: "should have visible focus indicators"
+      - Testa se: "should maintain focus order"
+      - Testa se: "should restore focus after modal closes"
+      - Testa se: "should have accessible error messages"
+      - Testa se: "should associate errors with form fields"
+      - Testa se: "should have proper input types"
+      - Testa se: "should have adequate touch target sizes"
+      - Testa se: "should have adequate spacing between touch targets"
+      - Testa se: "should be readable at 200% zoom"
+      - Testa se: "should support text resizing"
+      - Testa se: "should respect prefers-reduced-motion"
+      - Testa se: "should have skip to main content link"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/athletes.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should display athletes list"
+      - Testa se: "should search for athletes"
+      - Testa se: "should filter athletes"
+      - Testa se: "should open athlete profile"
+      - Testa se: "should create new athlete"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/calendar.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should display calendar with all views"
+      - Testa se: "should open create event panel"
+      - Testa se: "should navigate between months"
+      - Testa se: "should filter events"
+      - Testa se: "should search for events"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/complete-user-journey.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should navigate through main pages"
+      - Testa se: "should complete metric entry flow"
+      - Testa se: "should create calendar event"
+      - Testa se: "should search and filter athletes"
+      - Testa se: "should handle form validation"
+      - Testa se: "should work on mobile viewport"
+      - Testa se: "should work on tablet viewport"
+      - Testa se: "should work on desktop viewport"
+      - Testa se: " "
+      - Testa se: "should load pages within acceptable time"
+      - Testa se: "should handle rapid navigation"
+      - Testa se: "should be keyboard navigable"
+      - Testa se: "should have proper ARIA labels"
+      - Testa se: "should have sufficient color contrast"
+      - Testa se: "should handle network errors gracefully"
+      - Testa se: "should handle 404 errors"
+      - Testa se: "should persist filter selections"
+      - Testa se: "should maintain scroll position"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/data-os.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should display all data OS modules"
+      - Testa se: "should switch between modules"
+      - Testa se: "should display metrics in library"
+      - Testa se: "should open metric wizard"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/design-studio.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should display design studio modules"
+      - Testa se: "should navigate to workout builder"
+      - Testa se: "should navigate to exercise creator"
+      - Testa se: "should open load calculator"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/e2e/navigation.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should navigate to main pages"
+      - Testa se: "should handle 404 pages"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/integration/calendar/event-creation.test.tsx`
+    - Tipo: Integração
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "user can create a new event"
+      - Testa se: "user can create recurring event"
+      - Testa se: "shows error when required fields are empty"
+      - Testa se: "shows error when API fails"
+      - Testa se: "validates date is not in the past"
+      - Testa se: "validates end time is after start time"
+      - Testa se: "warns about conflicts with existing events"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/integration/dataos/metric-entry.test.tsx`
+    - Tipo: Integração
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should load metrics and athletes on mount"
+      - Testa se: "should display loading state initially"
+      - Testa se: "should display metric grid after load"
+      - Testa se: "should open quick entry modal on button click"
+      - Testa se: "should select athlete in modal"
+      - Testa se: "should select metric in modal"
+      - Testa se: "should enter value and submit"
+      - Testa se: "should show validation error for empty value"
+      - Testa se: "should close modal on cancel"
+      - Testa se: "should open bulk entry modal"
+      - Testa se: "should select metric for bulk entry"
+      - Testa se: "should show athlete list for bulk entry"
+      - Testa se: "should enter values for multiple athletes"
+      - Testa se: "should submit bulk entries"
+      - Testa se: "should enable inline edit on cell click"
+      - Testa se: "should save inline edit on blur"
+      - Testa se: "should cancel inline edit on Escape"
+      - Testa se: "should show error toast on save failure"
+      - Testa se: "should handle network errors gracefully"
+      - Testa se: "should refresh data after successful entry"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/transformations.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "kg to lbs conversion"
+      - Testa se: "cm to inches conversion"
+      - Testa se: "celsius to fahrenheit"
+      - Testa se: "meters to kilometers"
+      - Testa se: "BMI calculation"
+      - Testa se: "1RM estimation (Brzycki)"
+      - Testa se: "Percentage of max"
+      - Testa se: "Speed calculation"
+      - Testa se: "RPE scale to numeric"
+      - Testa se: "Quality rating to score"
+      - Testa se: "Yes/No to boolean"
+      - Testa se: "Unmapped value returns original"
+      - Testa se: "passthrough numeric"
+      - Testa se: "passthrough string"
+      - Testa se: "invalid number returns null"
+      - Testa se: "invalid formula returns error"
+      - Testa se: "zero multiplier"
+      - Testa se: "multi-step transformation (theoretical)"
+      - Testa se: "conditional transformation (via mapping then formula)"
+      - Testa se: "Body weight submission (lbs to kg)"
+      - Testa se: "Sleep quality (text to numeric)"
+      - Testa se: "Stress level (1-10 to 0-100)"
+      - Testa se: "Running pace (min/km to m/s)"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/unit/components/Card.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render children"
+      - Testa se: "should render title"
+      - Testa se: "should render subtitle"
+      - Testa se: "should render without title and subtitle"
+      - Testa se: "should render action button"
+      - Testa se: "should handle action click"
+      - Testa se: "should have default card styles"
+      - Testa se: "should apply custom accent"
+      - Testa se: "should apply custom className"
+      - Testa se: "should have header when title provided"
+      - Testa se: "should align action button to right"
+      - Testa se: "should have margin bottom after header"
+      - Testa se: "should have mobile-first responsive classes"
+      - Testa se: "should handle long titles"
+      - Testa se: "should handle long subtitles"
+      - Testa se: "should render multiple children"
+      - Testa se: "should handle complex nested content"
+      - Testa se: "should have semantic HTML structure"
+      - Testa se: "should have proper heading hierarchy"
+      - Testa se: "should be keyboard navigable"
+      - Testa se: "should handle empty children"
+      - Testa se: "should handle undefined title and subtitle"
+      - Testa se: "should handle empty strings"
+      - Testa se: "should handle React fragments as children"
+      - Testa se: "should match snapshot with minimal props"
+      - Testa se: "should match snapshot with all props"
+      - Testa se: "should work with motion.div wrapper"
+      - Testa se: " "
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/unit/components/StatCard.test.tsx`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render with required props"
+      - Testa se: "should render icon"
+      - Testa se: "should apply correct gradient classes"
+      - Testa se: "should render subtitle when provided"
+      - Testa se: "should render change indicator when provided"
+      - Testa se: "should apply positive change styling"
+      - Testa se: "should apply negative change styling"
+      - Testa se: "should apply neutral change styling"
+      - Testa se: "should have mobile-first padding classes"
+      - Testa se: "should have rounded corners"
+      - Testa se: "should have border with opacity"
+      - Testa se: "should have semantic HTML structure"
+      - Testa se: "should have accessible text hierarchy"
+      - Testa se: "should render with sky gradient"
+      - Testa se: "should render with amber gradient"
+      - Testa se: "should render with violet gradient"
+      - Testa se: "should handle very long titles"
+      - Testa se: "should handle very large values"
+      - Testa se: "should handle empty subtitle"
+      - Testa se: "should handle zero value"
+      - Testa se: "should match snapshot"
+      - Testa se: "should match snapshot with all props"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/unit/hooks/useCalendarMetrics.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should calculate total events"
+      - Testa se: "should calculate events by type"
+      - Testa se: "should calculate events by status"
+      - Testa se: "should calculate total participants"
+      - Testa se: "should calculate unique athletes"
+      - Testa se: "should calculate total duration"
+      - Testa se: "should calculate average duration"
+      - Testa se: "should group events by day of week"
+      - Testa se: "should group events by hour"
+      - Testa se: "should calculate attendance rate"
+      - Testa se: "should calculate average participants per event"
+      - Testa se: "should identify busiest day"
+      - Testa se: "should identify busiest hour"
+      - Testa se: "should filter by date range"
+      - Testa se: "should filter by athlete"
+      - Testa se: "should filter by type"
+      - Testa se: "should filter by status"
+      - Testa se: "should apply multiple filters"
+      - Testa se: "should start with loading state"
+      - Testa se: "should set loading to false after fetch"
+      - Testa se: "should handle fetch errors"
+      - Testa se: "should handle empty events array"
+      - Testa se: "should handle malformed event data"
+      - Testa se: "should refetch data on demand"
+      - Testa se: "should compare with previous period"
+      - Testa se: "should calculate growth rate"
+      - Testa se: "should handle events with no participants"
+      - Testa se: "should handle events with same start and end time"
+      - Testa se: "should handle very large datasets"
+      - Testa se: "should memoize calculations"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/unit/hooks/useNotifications.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should initialize with empty notifications"
+      - Testa se: "should fetch notifications on mount"
+      - Testa se: "should mark notification as read"
+      - Testa se: "should decrease unread count when marking as read"
+      - Testa se: "should mark all notifications as read"
+      - Testa se: "should delete notification"
+      - Testa se: "should poll for new notifications"
+      - Testa se: "should handle fetch errors gracefully"
+      - Testa se: "should handle API errors"
+      - Testa se: "should clear polling interval on unmount"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/unit/hooks/useResponsive.test.ts`
+    - Tipo: Unitário
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should detect mobile viewport (< 640px)"
+      - Testa se: "should detect tablet viewport (640px - 1023px)"
+      - Testa se: "should detect desktop viewport (>= 1024px)"
+      - Testa se: "should detect sm breakpoint (>= 640px)"
+      - Testa se: "should detect lg breakpoint (>= 1024px)"
+      - Testa se: "should detect xl breakpoint (>= 1280px)"
+      - Testa se: "should return current window width"
+      - Testa se: "should return current window height"
+      - Testa se: "should detect portrait orientation"
+      - Testa se: "should detect landscape orientation"
+      - Testa se: "should update on window resize"
+      - Testa se: "should debounce resize events"
+      - Testa se: "should handle very small viewports"
+      - Testa se: "should handle very large viewports"
+      - Testa se: "should handle exact breakpoint values"
+      - Testa se: "should remove event listener on unmount"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/visual/accessibility-visual.spec.ts`
+    - Tipo: Visual/Snapshot
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "All interactive elements have visible focus"
+      - Testa se: "Focus order is logical"
+      - Testa se: "High contrast mode"
+      - Testa se: "Text on backgrounds has sufficient contrast"
+      - Testa se: "Animations disabled with prefers-reduced-motion"
+      - Testa se: "Normal animations"
+      - Testa se: "Text wraps correctly when scaled"
+      - Testa se: "Page prints correctly"
+      - Testa se: "Dark color scheme"
+      - Testa se: "Light color scheme"
+      - Testa se: "Visual structure with landmarks highlighted"
+      - Testa se: "Error messages are visible"
+      - Testa se: "Success states are visible"
+      - Testa se: "Skeleton loaders visible"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/visual/pages.visual.spec.ts`
+    - Tipo: Visual/Snapshot
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "Stat Cards on Dashboard"
+      - Testa se: "Calendar Grid"
+      - Testa se: "Athletes Grid"
+      - Testa se: "DataOS Library"
+      - Testa se: "Form Builder"
+      - Testa se: "Button hover states"
+      - Testa se: "Input focus states"
+      - Testa se: "Tab active states"
+      - Testa se: "Light mode appearance"
+      - Testa se: "Dark mode appearance"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `src/tests/visual/responsive.spec.ts`
+    - Tipo: Visual/Snapshot
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "Mobile: hamburger menu visible"
+      - Testa se: "Desktop: full navigation visible"
+      - Testa se: "Mobile: labels hidden, icons visible"
+      - Testa se: "Desktop: labels visible"
+      - Testa se: "Mobile: horizontal scroll tables"
+      - Testa se: "Vertical scroll behavior"
+      - Testa se: "Mobile: buttons meet minimum size (44x44)"
+      - Testa se: "Touch targets have adequate spacing"
+      - Testa se: "Portrait to Landscape transition"
+      - Testa se: "Input fields scale properly"
+      - Testa se: "Select dropdowns are accessible"
+      - Testa se: "Mobile: modal is fullscreen"
+      - Testa se: "Desktop: modal is centered"
+      - Testa se: "Font sizes scale correctly"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+  - Ficheiro: `e2e/login_flow.spec.ts`
+    - Tipo: E2E
+    - Página/componente associado: O módulo que se encontra testado (geralmente espelhado na path).
+    - O que testa exatamente:
+      - Testa se: "should render the login page"
+      - Testa se: "should show error for invalid credentials depending on auth system"
+    - Resultado esperado: Passagem das asserções (expect). Acessibilidade livre de falhas (axe), renders bem sucedidos.
+
+- **Estimativa da cobertura global:** 10 a 15%. A interface é massiva (mais de 450 componentes), mas a suite foca em utilitários e poucas interações E2E.
+- **Testes em falta:** Vasta maioria de views modulares UI e chamadas de contextos SWR não estão testadas via testes unitários.
+
+## 9. SEGURANÇA
+- **Mecanismos de autenticação:** Mock based `useApp` no `App.tsx`. Futuramente depende da API `@supabase/ssr`.
+- **Proteção contra vulnerabilidades:** `SameSite=Strict; Secure` para todos os acessos a cookies como imposto pelas guidelines. XSS está sanado por defeito via React binding.
+- **Dependências com vulnerabilidades:** Stack baseada em Vite/React moderna, sem falhas detetadas abertamente.
+- **Exposição de dados sensíveis:** As diretrizes impedem as stacks do backend de serem reveladas a clientes nos toasts de erro.
+
+## 10. PERFORMANCE
+- **Tamanho dos bundles:** A técnica de renderização Lazy (`import()`) com `<Suspense>` resolve o problema de inicialização de um monolito denso.
+- **Queries pesadas:** Os contextos tentam gerir em local memory os updates usando Map para lookup de O(1), prevenindo loops forçados lentos em arrays massivos. A inexistência de Backend físico torna invisível o impacto no SQL layer.
+- **Ineficiências detetadas:** Renderizações dependentes de contexto sem particionamento explícito (quando o Auth altera, roda a app inteira).
+- **Oportunidades de otimização:** Adotar re-roteamento hard URL limitaria o tamanho das árvores DOM simultaneamente em memória.
+
+## 11. RECOMENDAÇÕES E CONCLUSÃO
+A aplicação "Performance Tracker V1" reflete uma excelente abordagem em aspetos puramente estéticos e visuais no Frontend. Destaca-se nos modais e na experiência responsiva ("Luna OS").
+
+Contudo, os riscos detetados são elevados para um go-live:
+1. Navegação não suporta Deep Links. Adoção urgente de `react-router`.
+2. Supabase não existe num estado prático. A implementação restringe-se a `src/types/supabase.ts` e as comunicações usam Data Mocks. É urgente criar uma pasta `supabase/migrations` para definir o RLS e as tabelas com SQL explícito.
+3. Dívida técnica dos testes E2E para cobrir os fluxos monolíticos que não foram testados individualmente devido à falta de testes unitários nesses subcomponentes UI.
